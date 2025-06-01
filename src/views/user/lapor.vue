@@ -55,6 +55,8 @@
 </template>
 
 <script>
+import Swal from "sweetalert2";
+
 export default {
   data() {
     return {
@@ -87,7 +89,11 @@ export default {
           throw new Error("Gagal mengirim laporan");
         }
 
-        alert("Laporan telah dikirim");
+        await Swal.fire({
+          icon: "success",
+          title: "Laporan Terkirim",
+          text: "Terima kasih, laporan Anda telah berhasil dikirim.",
+        });
 
         // Reset form
         this.nama = "";
@@ -95,7 +101,11 @@ export default {
         this.isiLaporan = "";
         this.lampiran = null;
       } catch (error) {
-        alert(error.message);
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: error.message || "Terjadi kesalahan saat mengirim laporan.",
+        });
       }
     },
   },

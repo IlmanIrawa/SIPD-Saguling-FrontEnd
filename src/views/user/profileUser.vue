@@ -1,86 +1,154 @@
 <template>
-  <div class="profile-container">
-    <h2>Profil Pengguna</h2>
-    <hr />
+  <div class="container mt-2">
+    <div class="card shadow rounded" style="font-size: 89%; max-width: 700px; margin: auto;">
+      <div class="card-header text-center bg-primary text-white py-0">
+        <h3 class="mb-0">Profil Pengguna</h3>
+        <hr />
+      </div>
 
-    <!-- Tampilkan data pengguna jika sudah dimuat -->
-    <div v-if="user">
-      <p><strong>NIK:</strong> {{ user.nik }}</p>
-      <p><strong>Nama:</strong> {{ user.nama }}</p>
-      <p><strong>Jenis Kelamin:</strong> {{ user.jenisKelamin }}</p>
-      <p><strong>Tanggal Lahir:</strong> {{ formatDate(user.tanggalLahir) }}</p>
-      <p><strong>Email:</strong> {{ user.email }}</p>
-      <p><strong>Alamat:</strong> {{ user.alamat }}</p>
-      <p><strong>Pendidikan:</strong> {{ user.pendidikan }}</p>
-      <p><strong>Pekerjaan:</strong> {{ user.pekerjaan }}</p>
-      <p><strong>Agama:</strong> {{ user.agama }}</p>
-      <p><strong>Status Perkawinan:</strong> {{ user.perkawinan }}</p>
-    </div>
+      <div class="card-body" v-if="user && Object.keys(user).length">
+        <div class="mb-1 row" v-for="(label, key) in fieldLabels" :key="key">
+          <label class="col-sm-4 col-form-label fw-bold">{{ label }}</label>
+          
+          <div class="col-sm-8">
+            <template v-if="isEditing">
+              <input
+                :value="editUser[key] || ''"
+                @input="editUser[key] = $event.target.value"
+                class="form-control form-control-sm"
+              />
+            </template>
+            <template v-else>
+              {{ key === 'tanggalLahir' ? formatDate(user[key]) : user[key] || '-' }}
+            </template>
+          </div>
 
-    <!-- Pesan loading jika data belum dimuat -->
-    <div v-else>
-      <p>Memuat data pengguna...</p>
+          <hr class="mt-2 mb-2" />
+        </div>
+
+        <div class="text-center mt-4">
+          <button v-if="!isEditing" class="btn btn-warning" @click="startEdit">
+            Edit Profile
+          </button>
+          <div v-else>
+            <button class="btn btn-success me-2" @click="saveChanges">Simpan</button>
+            <button class="btn btn-secondary" @click="cancelEdit">Batal</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body text-center" v-else>
+        <div class="spinner-border text-secondary mb-2" role="status"></div>
+        <p>Memuat data pengguna...</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue';
-import { useAuthStore } from '@/store/authStore';  // Mengimpor store untuk autentikasi
+import { defineComponent, onMounted, ref } from 'vue';
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
+import Swal from 'sweetalert2';
 
 export default defineComponent({
   name: 'UserProfile',
   setup() {
-    const userStore = useAuthStore();  // Mengakses store pengguna
+    const userStore = useAuthStore();
+    const user = ref({});
+    const isEditing = ref(false);
+    const editUser = ref({});
 
-    // Fungsi untuk mengambil profil pengguna
+    const fieldLabels = {
+      nik: 'NIK',
+      nama: 'Nama',
+      jenisKelamin: 'Jenis Kelamin',
+      tanggalLahir: 'Tanggal Lahir',
+      email: 'E-mail',
+      alamat: 'Alamat',
+      pendidikan: 'Pendidikan',
+      pekerjaan: 'Pekerjaan',
+      agama: 'Agama',
+      perkawinan: 'Status Perkawinan',
+    };
+
     const fetchUserProfile = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/user/me', {
-          headers: { Authorization: `Bearer ${userStore.token}` },  // Menggunakan token dari store
+          headers: { Authorization: `Bearer ${userStore.token}` },
         });
-        userStore.setUser(response.data);  // Menyimpan data pengguna ke store
+        user.value = response.data;
       } catch (error) {
-        console.error('Gagal memuat data user:', error);
+        console.error('❌ Gagal memuat data user:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal memuat data user',
+          text: 'Terjadi kesalahan saat mengambil data.',
+        });
       }
     };
 
-    // Format tanggal lahir menjadi format Indonesia
     const formatDate = (date) => {
-      return new Date(date).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      if (!date) return '-';
+      const d = new Date(date);
+      return isNaN(d)
+        ? 'Invalid Date'
+        : d.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
     };
 
-    onMounted(fetchUserProfile);  // Memanggil fetchUserProfile saat komponen dimuat
+    const startEdit = () => {
+      isEditing.value = true;
+      editUser.value = { ...user.value };
+    };
+
+    const cancelEdit = () => {
+      isEditing.value = false;
+      editUser.value = {};
+    };
+
+    const saveChanges = async () => {
+      try {
+        const response = await axios.patch(
+          'http://localhost:3000/api/user',
+          editUser.value,
+          {
+            headers: { Authorization: `Bearer ${userStore.token}` },
+          }
+        );
+        user.value = response.data;
+        isEditing.value = false;
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Perubahan berhasil disimpan.',
+        });
+      } catch (error) {
+        console.error('❌ Gagal menyimpan data:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal menyimpan data',
+          text: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.',
+        });
+      }
+    };
+
+    onMounted(fetchUserProfile);
 
     return {
-      user: userStore.user,  // Mengakses data pengguna dari store
+      user,
+      editUser,
+      isEditing,
+      fieldLabels,
       formatDate,
+      startEdit,
+      cancelEdit,
+      saveChanges,
     };
   },
 });
 </script>
-
-<style scoped>
-.profile-container {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-p {
-  line-height: 1.8;
-}
-</style>

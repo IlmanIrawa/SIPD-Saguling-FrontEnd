@@ -83,6 +83,7 @@ import { ref, watch } from "vue";
 import ModalApp from "@/views/ModalApp.vue";
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import Swal from "sweetalert2";
 
 export default {
   components: { ModalApp },
@@ -139,10 +140,21 @@ export default {
           { headers: { Authorization: `Bearer ${authStore.token}` } }
         );
         emit("updateStatus", formItem.value);
-        alert("Update Status Berhasil!");
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil",
+          text: "Status pengajuan berhasil diperbarui!",
+        });
         closeModal();
       } catch (error) {
         console.error("Gagal memperbarui status pengajuan:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text:
+            error.response?.data?.message ||
+            "Gagal memperbarui status pengajuan. Silakan coba lagi!",
+        });
       }
     };
 
@@ -160,6 +172,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 form {

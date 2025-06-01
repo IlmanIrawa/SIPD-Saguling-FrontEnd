@@ -2,7 +2,7 @@
   <div>
     <form @submit.prevent="submitForm">
       <h2>{{ formTitle }}</h2>
-      <hr>
+      <hr />
       <table>
         <tbody>
           <tr>
@@ -32,13 +32,23 @@
           <tr>
             <td>Jenis Kelamin</td>
             <td>
-              <input type="text" v-model="form.jenisKelamin" id="jenisKelamin" required />
+              <input
+                type="text"
+                v-model="form.jenisKelamin"
+                id="jenisKelamin"
+                required
+              />
             </td>
           </tr>
           <tr>
             <td>Tanggal Lahir</td>
             <td>
-              <input type="text" v-model="form.tanggalLahir" id="tanggalLahir" required />
+              <input
+                type="text"
+                v-model="form.tanggalLahir"
+                id="tanggalLahir"
+                required
+              />
             </td>
           </tr>
           <tr>
@@ -56,13 +66,23 @@
           <tr>
             <td>Pendidikan</td>
             <td>
-              <input type="text" v-model="form.pendidikan" id="pendidikan" required />
+              <input
+                type="text"
+                v-model="form.pendidikan"
+                id="pendidikan"
+                required
+              />
             </td>
           </tr>
           <tr>
             <td>Pekerjaan</td>
             <td>
-              <input type="text" v-model="form.pekerjaan" id="pekerjaan" required />
+              <input
+                type="text"
+                v-model="form.pekerjaan"
+                id="pekerjaan"
+                required
+              />
             </td>
           </tr>
           <tr>
@@ -74,7 +94,12 @@
           <tr>
             <td>Status Perkawinan</td>
             <td>
-              <input type="text" v-model="form.perkawinan" id="perkawinan" required />
+              <input
+                type="text"
+                v-model="form.perkawinan"
+                id="perkawinan"
+                required
+              />
             </td>
           </tr>
           <tr>
@@ -89,7 +114,12 @@
           <tr v-if="!isEdit">
             <td>Password</td>
             <td>
-              <input type="password" v-model="form.password" id="password" required />
+              <input
+                type="password"
+                v-model="form.password"
+                id="password"
+                required
+              />
             </td>
           </tr>
           <tr>
@@ -114,6 +144,7 @@
 <script>
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import Swal from "sweetalert2";
 
 export default {
   name: "ItemForm",
@@ -155,7 +186,7 @@ export default {
         agama: "",
         perkawinan: "",
         statusHidup: "HIDUP",
-        password: "", 
+        password: "",
       },
     };
   },
@@ -192,7 +223,7 @@ export default {
         agama: "",
         perkawinan: "",
         statusHidup: "HIDUP",
-        password: "", 
+        password: "",
       };
     },
     async submitForm() {
@@ -200,33 +231,51 @@ export default {
       const token = authStore.token;
 
       if (!token) {
-        alert("Token tidak valid, silakan login kembali!");
+        Swal.fire({
+          icon: "error",
+          title: "Token tidak valid",
+          text: "Silakan login kembali!",
+        });
         return;
       }
 
       try {
         if (this.isEdit) {
           const updateData = { ...this.form };
-          delete updateData.password; 
+          delete updateData.password;
 
           await axios.patch(
             `http://localhost:3000/api/user/${this.form.userid}`,
             updateData,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          alert("Data berhasil diperbarui!");
+          await Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: "Data berhasil diperbarui!",
+          });
         } else {
           await axios.post("http://localhost:3000/api/user", this.form, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          alert("Data berhasil ditambahkan!");
+          await Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: "Data berhasil ditambahkan!",
+          });
         }
 
         this.$emit("submit", this.form);
         this.resetForm();
       } catch (error) {
         console.error("Gagal menyimpan data:", error);
-        alert(error.response?.data?.message || "Terjadi kesalahan, silakan coba lagi!");
+        Swal.fire({
+          icon: "error",
+          title: "Gagal!",
+          text:
+            error.response?.data?.message ||
+            "Terjadi kesalahan, silakan coba lagi!",
+        });
       }
     },
   },
@@ -235,7 +284,7 @@ export default {
 
 <style scoped>
 form {
-  margin-top: 400px; /* Jarak antara form dan header */
+  margin-top: 450px; /* Jarak antara form dan header */
 }
 
 table {
@@ -286,5 +335,4 @@ button:hover {
 .cancel:hover {
   background-color: #b91c1c;
 }
-
 </style>

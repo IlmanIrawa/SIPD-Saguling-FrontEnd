@@ -40,6 +40,7 @@
 
 <script>
 import axios from "axios";
+import Swal from "sweetalert2";
 import { useAuthStore } from "@/store/authStore";
 
 export default {
@@ -60,7 +61,7 @@ export default {
     },
     async submitBerita() {
       if (!this.form.judul || !this.form.tanggal || !this.form.isiBerita) {
-        alert("Semua field harus diisi.");
+        Swal.fire("Oops!", "Semua field harus diisi.", "warning");
         return;
       }
 
@@ -68,7 +69,7 @@ export default {
       try {
         const authStore = useAuthStore();
         if (!authStore.token) {
-          alert("Token tidak ditemukan. Silakan login kembali.");
+          Swal.fire("Error", "Token tidak ditemukan. Silakan login kembali.", "error");
           return;
         }
 
@@ -81,19 +82,23 @@ export default {
         }
 
         await axios.post("http://localhost:3000/api/berita", formData, {
-          headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${authStore.token}` },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${authStore.token}`,
+          },
         });
 
-        alert("Data berhasil disimpan!");
+        Swal.fire("Berhasil", "Data berhasil disimpan!", "success");
         this.form = { judul: "", tanggal: "", gambar: null, isiBerita: "" };
       } catch (error) {
-        alert("Gagal menyimpan data!");
+        Swal.fire("Gagal", "Gagal menyimpan data!", "error");
       } finally {
         this.isSubmitting = false;
       }
     },
   },
 };
+
 </script>
 
 <style>

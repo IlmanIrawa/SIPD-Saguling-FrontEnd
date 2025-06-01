@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/authStore";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
 
 const BASE_URL = "http://localhost:3000/api/sosial";
 const users = ref([]);
@@ -24,12 +25,11 @@ const selectedItem = reactive({
 });
 
 const isEdit = ref(false);
+const isSubmitting = ref(false);
 
-// Pagination-related variables
 const currentPage = ref(1);
 const itemsPerPage = 10;
 
-// Fetch data from the API
 async function fetchUsers() {
   isLoading.value = true;
   try {
@@ -39,18 +39,13 @@ async function fetchUsers() {
     users.value = response.data;
   } catch (error) {
     console.error("Error fetching users:", error);
+    Swal.fire("Gagal", "Gagal mengambil data dari server", "error");
   } finally {
     isLoading.value = false;
   }
 }
 
-// Tambahan untuk mencegah klik ganda
-const isSubmitting = ref(false);
-
-//KECURIGAAN PUSAT ERROR NYA DI BLOK INI 
-// Handle form submission (Add/Edit)
 async function handleSubmit(user) {
-  // Cegah pengiriman ganda
   if (isSubmitting.value) return;
   isSubmitting.value = true;
   isLoading.value = true;
@@ -61,19 +56,17 @@ async function handleSubmit(user) {
     };
 
     if (isEdit.value) {
-      // Edit data
       await axios.put(`${BASE_URL}/${user.sosialid}`, user, config);
-      alert("Data berhasil diperbarui!");
+      await Swal.fire("Berhasil", "Data berhasil diperbarui!", "success");
     } else {
-      // Tambah data
       await axios.post(BASE_URL, user, config);
-      alert("Data berhasil ditambahkan!");
+      await Swal.fire("Berhasil", "Data berhasil ditambahkan!", "success");
     }
 
-    // Perbarui daftar setelah perubahan
     await fetchUsers();
   } catch (error) {
-    //alert("Terjadi kesalahan saat menyimpan data.");
+    console.error("Gagal menyimpan data:", error);
+    Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan data.", "error");
   } finally {
     isLoading.value = false;
     isSubmitting.value = false;
@@ -81,25 +74,33 @@ async function handleSubmit(user) {
   }
 }
 
-// Handle delete user
 async function deleteUser(sosialid) {
-  if (!confirm("Apakah Anda yakin ingin menghapus user ini?")) return;
+  const result = await Swal.fire({
+    title: "Yakin ingin menghapus?",
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
+  });
+
+  if (!result.isConfirmed) return;
+
   isLoading.value = true;
   try {
     await axios.delete(`${BASE_URL}/${sosialid}`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
     users.value = users.value.filter((user) => user.sosialid !== sosialid);
-    alert("User berhasil dihapus.");
+    Swal.fire("Dihapus!", "User berhasil dihapus.", "success");
   } catch (error) {
     console.error("Error deleting user:", error);
-    alert("Terjadi kesalahan saat menghapus user.");
+    Swal.fire("Gagal", "Terjadi kesalahan saat menghapus user.", "error");
   } finally {
     isLoading.value = false;
   }
 }
 
-// Filter users based on search query
 const filteredUsers = computed(() => {
   return users.value.filter((user) =>
     Object.values(user).some((value) =>
@@ -108,7 +109,6 @@ const filteredUsers = computed(() => {
   );
 });
 
-// Pagination logic
 const totalPages = computed(() =>
   Math.ceil(filteredUsers.value.length / itemsPerPage)
 );
@@ -118,7 +118,6 @@ const paginatedUsers = computed(() => {
   return filteredUsers.value.slice(start, start + itemsPerPage);
 });
 
-// Change page
 function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++;
 }
@@ -175,6 +174,7 @@ function exportToExcel() {
 
 onMounted(fetchUsers);
 </script>
+
 
 <template>
   <div class="master-data-container">

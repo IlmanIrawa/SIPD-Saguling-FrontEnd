@@ -6,6 +6,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import Swal from 'sweetalert2'; // <--- Tambahkan ini
 
 const asets = ref([]);
 const isLoading = ref(false);
@@ -23,14 +24,14 @@ const isEdit = ref(false);
 
 // Pagination state
 const currentPage = ref(1);
-const itemsPerPage = 10; // Sesuaikan jumlah item per halaman
+const itemsPerPage = 10;
 
 async function fetchAsets() {
   isLoading.value = true;
   const authStore = useAuthStore();
 
   if (!authStore.token) {
-    console.error("Token kosong! Pastikan pengguna sudah login.");
+    await Swal.fire("Error", "Token kosong! Pastikan pengguna sudah login.", "error");
     isLoading.value = false;
     return;
   }
@@ -46,6 +47,7 @@ async function fetchAsets() {
     }));
   } catch (error) {
     console.error("Error fetching asets:", error);
+    await Swal.fire("Gagal", "Gagal mengambil data aset.", "error");
   } finally {
     isLoading.value = false;
   }
@@ -60,15 +62,13 @@ const filteredAsets = computed(() => {
   });
 });
 
-// Pagination computed properties
+// Pagination computed
 const totalPages = computed(() => Math.ceil(filteredAsets.value.length / itemsPerPage));
-
 const paginatedAsets = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredAsets.value.slice(start, start + itemsPerPage);
 });
 
-// Pagination methods
 function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++;
 }
@@ -95,9 +95,20 @@ function closeForm() {
   Object.assign(selectedAset, { nama: "", tanggalBeli: "", harga: "", statusAset: "", keterangan: "" });
 }
 
-function confirmDeleteAset(aset) {
-  if (window.confirm(`Apakah Anda yakin ingin menghapus aset "${aset.nama}"?`)) {
-    deleteAset(aset.asetid);
+async function confirmDeleteAset(aset) {
+  const result = await Swal.fire({
+    title: `Hapus Aset "${aset.nama}"?`,
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
+  });
+
+  if (result.isConfirmed) {
+    await deleteAset(aset.asetid);
   }
 }
 
@@ -105,7 +116,7 @@ async function deleteAset(asetid) {
   const authStore = useAuthStore();
 
   if (!authStore.token) {
-    console.error("Token kosong! Tidak dapat melakukan permintaan API.");
+    await Swal.fire("Error", "Token kosong! Tidak dapat melakukan permintaan API.", "error");
     return;
   }
 
@@ -115,9 +126,10 @@ async function deleteAset(asetid) {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
     asets.value = asets.value.filter(aset => aset.asetid !== asetid);
-    alert("Aset berhasil dihapus.");
+    await Swal.fire("Berhasil", "Aset berhasil dihapus.", "success");
   } catch (error) {
     console.error("Error deleting aset:", error);
+    await Swal.fire("Gagal", "Gagal menghapus aset.", "error");
   } finally {
     isLoading.value = false;
   }
@@ -133,6 +145,7 @@ function exportToExcel() {
 
 onMounted(fetchAsets);
 </script>
+
 
 <template>
   <div class="master-data-container">

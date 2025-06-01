@@ -38,13 +38,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted , computed} from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import ModalApp from "@/views/ModalApp.vue";
 import formRiwayatBerita from "@/views/admin/formRiwayatBerita.vue";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { useAuthStore } from "@/store/authStore";
-const searchQuery = ref("");
 
+const searchQuery = ref("");
 const users = ref([]);
 const isLoading = ref(false);
 const showForm = ref(false);
@@ -61,6 +62,7 @@ async function fetchUsers() {
     users.value = response.data;
   } catch (error) {
     console.error("Error fetching Berita:", error);
+    Swal.fire("Gagal", "Gagal memuat data berita.", "error");
   } finally {
     isLoading.value = false;
   }
@@ -79,24 +81,25 @@ async function handleSubmit(user) {
   try {
     isLoading.value = true;
     if (isEdit.value) {
-      await axios.patch(
-        `http://localhost:3000/api/berita/${user.beritaid}`,
-        user,
-        {
-          headers: { Authorization: `Bearer ${authStore.token}` },
-        }
-      );
+      await axios.patch(`http://localhost:3000/api/berita/${user.beritaid}`, user, {
+        headers: { Authorization: `Bearer ${authStore.token}` },
+      });
     } else {
       await axios.post("http://localhost:3000/api/berita", user, {
         headers: { Authorization: `Bearer ${authStore.token}` },
       });
     }
+
     await fetchUsers();
-    alert(
-      isEdit.value ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!"
-    );
+
+    Swal.fire({
+      icon: "success",
+      title: isEdit.value ? "Data diperbarui" : "Data ditambahkan",
+      text: isEdit.value ? "Data berita berhasil diperbarui!" : "Data berita berhasil ditambahkan!",
+    });
   } catch (error) {
     console.error("Error saving user:", error);
+    Swal.fire("Gagal", "Gagal menyimpan data berita.", "error");
   } finally {
     isLoading.value = false;
     closeForm();
@@ -110,10 +113,11 @@ async function deleteUser(beritaid) {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
     users.value = users.value.filter((user) => user.beritaid !== beritaid);
-    alert("Berita berhasil dihapus.");
+
+    Swal.fire("Terhapus!", "Berita berhasil dihapus.", "success");
   } catch (error) {
     console.error("Error deleting berita:", error);
-    alert("Terjadi kesalahan saat menghapus berita.");
+    Swal.fire("Gagal", "Terjadi kesalahan saat menghapus berita.", "error");
   } finally {
     isLoading.value = false;
   }
@@ -132,13 +136,23 @@ function closeForm() {
 }
 
 function confirmDeleteUser(user) {
-  if (window.confirm(`Apakah Anda yakin ingin menghapus Berita |"${user.judul}"|?`)) {
-    deleteUser(user.beritaid);
-  }
+  Swal.fire({
+    title: `Hapus Berita?`,
+    text: `Anda yakin ingin menghapus berita: "${user.judul}"?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Hapus!",
+    cancelButtonText: "Batal",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      deleteUser(user.beritaid);
+    }
+  });
 }
 
 onMounted(fetchUsers);
 </script>
+
 
 <style scoped>
 .search-input {

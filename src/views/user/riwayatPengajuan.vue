@@ -2,7 +2,7 @@
   <div class="history-container">
     <div class="card modern-card">
       <div class="card-header">
-        <h2 class="card-title">Riwayat Pengajuan Masuk</h2>
+        <h2 class="card-title">Riwayat Pengajuan </h2>
         <input
           type="text"
           v-model="searchQuery"

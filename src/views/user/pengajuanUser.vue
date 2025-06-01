@@ -131,6 +131,7 @@
 <script>
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import Swal from "sweetalert2";
 
 export default {
   data() {
@@ -167,7 +168,11 @@ export default {
         const token = authStore.token || localStorage.getItem("jwt_token");
 
         if (!token) {
-          alert("Token tidak ditemukan. Silakan login kembali.");
+          Swal.fire({
+            icon: "warning",
+            title: "Token Tidak Ditemukan",
+            text: "Silakan login kembali untuk melanjutkan.",
+          });
           return;
         }
 
@@ -181,22 +186,28 @@ export default {
         formData.append("kk", this.form.kk);
         formData.append("lampiran", this.form.lampiran);
 
-        console.log("Data yang dikirim:", [...formData.entries()]);
-
         await axios.post("http://localhost:3000/api/pengajuan", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        alert("Data berhasil dikirim!");
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil",
+          text: "Pengajuan berhasil dikirim.",
+        });
+
         this.resetForm();
       } catch (error) {
-        console.error("Error:", error);
-        alert(
-          "Gagal mengirim data: " +
-            (error.response?.data?.message || error.message)
-        );
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Mengirim Data",
+          text:
+            error.response?.data?.message ||
+            error.message ||
+            "Terjadi kesalahan saat mengirim data.",
+        });
       }
     },
     resetForm() {
@@ -210,7 +221,7 @@ export default {
         lampiran: null,
         keperluan: "",
       };
-      // Optional: reset input file field (manual clear)
+      // Reset file input fields
       document.getElementById("ktp").value = "";
       document.getElementById("kk").value = "";
       document.getElementById("lampiran").value = "";

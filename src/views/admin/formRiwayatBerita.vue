@@ -56,6 +56,7 @@
 <script>
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import Swal from "sweetalert2";
 
 export default {
   name: "BeritaForm",
@@ -115,7 +116,7 @@ export default {
       const token = authStore.token;
 
       if (!token) {
-        alert("Token tidak valid, silakan login kembali!");
+        Swal.fire("Token Tidak Valid", "Silakan login kembali!", "warning");
         return;
       }
 
@@ -126,21 +127,22 @@ export default {
             this.form,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          alert("Berita berhasil diperbarui!");
+          Swal.fire("Berhasil", "Berita berhasil diperbarui!", "success");
         } else {
           await axios.post("http://localhost:3000/api/berita", this.form, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          alert("Berita berhasil ditambahkan!");
+          Swal.fire("Berhasil", "Berita berhasil ditambahkan!", "success");
         }
 
         this.$emit("submit", this.form);
         this.resetForm();
       } catch (error) {
         console.error("Gagal menyimpan berita:", error);
-        alert(
-          error.response?.data?.message ||
-            "Terjadi kesalahan, silakan coba lagi!"
+        Swal.fire(
+          "Gagal",
+          error.response?.data?.message || "Terjadi kesalahan, silakan coba lagi!",
+          "error"
         );
       }
     },

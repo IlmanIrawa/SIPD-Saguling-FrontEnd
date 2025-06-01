@@ -103,214 +103,218 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import axios from "axios";
+import Swal from "sweetalert2"; // ← Tambahkan ini
 
 export default {
   name: "laporan-fo",
   setup() {
-  const laporan = ref([]);
-  const statusFilter = ref("");
-  const timeFilter = ref("");
-  const currentPage = ref(1);
-  const itemsPerPage = ref(5); // Jumlah item per halaman
-  const authStore = useAuthStore();
+    const laporan = ref([]);
+    const statusFilter = ref("");
+    const timeFilter = ref("");
+    const currentPage = ref(1);
+    const itemsPerPage = ref(5);
+    const authStore = useAuthStore();
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:3000/api/pengajuan",
-        {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/pengajuan", {
           headers: {
             Authorization: `Bearer ${authStore.token}`,
           },
+        });
+        laporan.value = response.data;
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    onMounted(fetchData);
+
+    const filteredLaporan = computed(() => {
+      let filtered = laporan.value;
+
+      if (statusFilter.value) {
+        filtered = filtered.filter(
+          (item) => item.statusPengajuan === statusFilter.value
+        );
+      }
+
+      if (timeFilter.value === "bulanan") {
+        const currentMonth = new Date().getMonth() + 1;
+        filtered = filtered.filter(
+          (item) =>
+            new Date(item.tanggalPengajuan).getMonth() + 1 === currentMonth
+        );
+      } else if (timeFilter.value === "tahunan") {
+        const currentYear = new Date().getFullYear();
+        filtered = filtered.filter(
+          (item) =>
+            new Date(item.tanggalPengajuan).getFullYear() === currentYear
+        );
+      }
+
+      return filtered;
+    });
+
+    const totalPages = computed(() =>
+      Math.ceil(filteredLaporan.value.length / itemsPerPage.value)
+    );
+
+    const paginatedLaporan = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      return filteredLaporan.value.slice(start, start + itemsPerPage.value);
+    });
+
+    function nextPage() {
+      if (currentPage.value < totalPages.value) currentPage.value++;
+    }
+
+    function prevPage() {
+      if (currentPage.value > 1) currentPage.value--;
+    }
+
+    const confirmExport = (type) => {
+      const status = statusFilter.value || "Semua";
+      const time =
+        timeFilter.value === "bulanan"
+          ? "Bulanan"
+          : timeFilter.value === "tahunan"
+          ? "Tahunan"
+          : "Semua Waktu";
+
+      Swal.fire({
+        title: "Konfirmasi Cetak",
+        text: `Cetak laporan dengan status "${status}" dan jangka waktu "${time}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Ya, Cetak",
+        cancelButtonText: "Batal",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (type === "pdf") exportPDF();
+          else if (type === "excel") exportExcel();
         }
-      );
-      laporan.value = response.data;
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
+      });
+    };
 
-  onMounted(fetchData);
-
-  const filteredLaporan = computed(() => {
-    let filtered = laporan.value;
-
-    if (statusFilter.value) {
-      filtered = filtered.filter(
-        (item) => item.statusPengajuan === statusFilter.value
-      );
-    }
-
-    if (timeFilter.value === "bulanan") {
-      const currentMonth = new Date().getMonth() + 1;
-      filtered = filtered.filter(
-        (item) =>
-          new Date(item.tanggalPengajuan).getMonth() + 1 === currentMonth
-      );
-    } else if (timeFilter.value === "tahunan") {
-      const currentYear = new Date().getFullYear();
-      filtered = filtered.filter(
-        (item) =>
-          new Date(item.tanggalPengajuan).getFullYear() === currentYear
-      );
-    }
-
-    return filtered;
-  });
-
-  const totalPages = computed(() =>
-    Math.ceil(filteredLaporan.value.length / itemsPerPage.value)
-  );
-
-  const paginatedLaporan = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value;
-    return filteredLaporan.value.slice(start, start + itemsPerPage.value);
-  });
-
-  function nextPage() {
-    if (currentPage.value < totalPages.value) currentPage.value++;
-  }
-
-  function prevPage() {
-    if (currentPage.value > 1) currentPage.value--;
-  }
-
-  const confirmExport = (type) => {
-    const status = statusFilter.value || "Semua";
-    const time =
-      timeFilter.value === "bulanan"
-        ? "bulanan"
-        : timeFilter.value === "tahunan"
-        ? "tahunan"
-        : "semua waktu";
-    if (
-      confirm(
-        `Apakah anda ingin mencetak laporan dengan status "${status}", jangka "${time}"?`
-      )
-    ) {
-      if (type === "pdf") exportPDF();
-      else if (type === "excel") exportExcel();
-    }
-  };
-
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Laporan Pengajuan Administrasi", 14, 10);
-    autoTable(doc, {
-      head: [
-        [
-          "No",
-          "NIK",
-          "Nama Pemohon",
-          "Alamat",
-          "No HP",
-          "Keperluan",
-          "Tanggal Pengajuan",
-          "Status",
+    const exportPDF = () => {
+      const doc = new jsPDF();
+      doc.text("Laporan Pengajuan Administrasi", 14, 10);
+      autoTable(doc, {
+        head: [
+          [
+            "No",
+            "NIK",
+            "Nama Pemohon",
+            "Alamat",
+            "No HP",
+            "Keperluan",
+            "Tanggal Pengajuan",
+            "Status",
+          ],
         ],
-      ],
-      body: filteredLaporan.value.map((item, index) => [
+        body: filteredLaporan.value.map((item, index) => [
+          index + 1,
+          item.nik,
+          item.nama,
+          item.alamat,
+          item.noHp,
+          item.keperluan,
+          formatTanggal(item.tanggalPengajuan),
+          item.statusPengajuan,
+        ]),
+      });
+      doc.save("Laporan_Surat.pdf");
+    };
+
+    const exportExcel = () => {
+      const header = [
+        "No",
+        "NIK",
+        "Nama Pemohon",
+        "Alamat",
+        "No HP",
+        "Keperluan",
+        "Tanggal Pengajuan",
+        "Status",
+      ];
+
+      const data = filteredLaporan.value.map((item, index) => [
         index + 1,
         item.nik,
         item.nama,
         item.alamat,
         item.noHp,
         item.keperluan,
-        formatTanggal(item.tanggalPengajuan),
+        formatTanggall(item.tanggalPengajuan),
         item.statusPengajuan,
-      ]),
-    });
-    doc.save("Laporan_Surat.pdf");
-  };
+      ]);
 
-  const exportExcel = () => {
-    const header = [
-      "No",
-      "NIK",
-      "Nama Pemohon",
-      "Alamat",
-      "No HP",
-      "Keperluan",
-      "Tanggal Pengajuan",
-      "Status",
-    ];
+      const worksheet = XLSX.utils.aoa_to_sheet([
+        ["Laporan Pengajuan Administrasi"],
+        [],
+        header,
+        ...data,
+      ]);
 
-    const data = filteredLaporan.value.map((item, index) => [
-      index + 1,
-      item.nik,
-      item.nama,
-      item.alamat,
-      item.noHp,
-      item.keperluan,
-      formatTanggall(item.tanggalPengajuan),
-      item.statusPengajuan,
-    ]);
+      worksheet["!cols"] = [
+        { wch: 5 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 15 },
+      ];
 
-    const worksheet = XLSX.utils.aoa_to_sheet([
-      ["Laporan Pengajuan Administrasi"],
-      [],
-      header,
-      ...data,
-    ]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
+      XLSX.writeFile(workbook, "Laporan_Surat.xlsx");
+    };
 
-    worksheet["!cols"] = [
-      { wch: 5 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 25 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
+    const formatTanggal = (tanggalPengajuan) => {
+      if (!tanggalPengajuan) return "";
+      const date = new Date(tanggalPengajuan);
+      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    };
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
-    XLSX.writeFile(workbook, "Laporan_Surat.xlsx");
-  };
+    const formatTanggall = (tanggalPengajuan) => {
+      if (!tanggalPengajuan) return "";
+      return new Date(tanggalPengajuan).toISOString().split("T")[0];
+    };
 
-  const formatTanggal = (tanggalPengajuan) => {
-    if (!tanggalPengajuan) return "";
-    const date = new Date(tanggalPengajuan);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-  };
+    const getStatusClass = (status) => {
+      switch (status) {
+        case "PENDING":
+          return "bg-secondary";
+        case "ON_PROCESS":
+          return "bg-warning text-dark";
+        case "MENUNGGU_TTD":
+          return "bg-info text-dark";
+        case "SELESAI":
+          return "bg-success";
+        default:
+          return "bg-secondary";
+      }
+    };
 
-  const formatTanggall = (tanggalPengajuan) => {
-    if (!tanggalPengajuan) return "";
-    return new Date(tanggalPengajuan).toISOString().split("T")[0];
-  };
-
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-secondary";
-      case "ON_PROCESS":
-        return "bg-warning text-dark";
-      case "MENUNGGU_TTD":
-        return "bg-info text-dark";
-      case "SELESAI":
-        return "bg-success";
-      default:
-        return "bg-secondary";
-    }
-  };
-
-  return {
-    laporan,
-    statusFilter,
-    timeFilter,
-    filteredLaporan,
-    paginatedLaporan,
-    currentPage,
-    totalPages,
-    nextPage,
-    prevPage,
-    confirmExport,
-    getStatusClass,
-    formatTanggal,
-  };
-}
-}
+    return {
+      laporan,
+      statusFilter,
+      timeFilter,
+      filteredLaporan,
+      paginatedLaporan,
+      currentPage,
+      totalPages,
+      nextPage,
+      prevPage,
+      confirmExport,
+      getStatusClass,
+      formatTanggal,
+    };
+  },
+};
 </script>
 
 <style scoped>

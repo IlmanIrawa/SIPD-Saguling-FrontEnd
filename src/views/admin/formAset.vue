@@ -51,6 +51,7 @@
 <script>
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import Swal from "sweetalert2";
 
 export default {
   name: "ItemForm",
@@ -58,7 +59,7 @@ export default {
     item: {
       type: Object,
       default: () => ({
-        asetid: null, 
+        asetid: null,
         nama: "",
         tanggalBeli: "",
         harga: "",
@@ -116,7 +117,11 @@ export default {
       const token = authStore.token;
 
       if (!token) {
-        alert("Token tidak valid, silakan login kembali!");
+        Swal.fire({
+          icon: "error",
+          title: "Token Tidak Valid",
+          text: "Silakan login kembali!",
+        });
         return;
       }
 
@@ -127,12 +132,20 @@ export default {
             this.form,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          alert("Data aset berhasil diperbarui!");
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: "Data aset berhasil diperbarui!",
+          });
         } else {
           await axios.post("http://localhost:3000/api/aset", this.form, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          alert("Data aset berhasil ditambahkan!");
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: "Data aset berhasil ditambahkan!",
+          });
         }
 
         this.$emit("submit", this.form);
@@ -140,7 +153,11 @@ export default {
         this.$emit("cancel");
       } catch (error) {
         console.error("Gagal menyimpan data:", error);
-        alert(error.response?.data?.message || "Terjadi kesalahan, silakan coba lagi!");
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Menyimpan Data",
+          text: error.response?.data?.message || "Terjadi kesalahan, silakan coba lagi!",
+        });
       }
     },
   },

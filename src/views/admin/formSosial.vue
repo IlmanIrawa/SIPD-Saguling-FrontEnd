@@ -80,6 +80,7 @@
 
 <script>
 import axios from "axios";
+import Swal from "sweetalert2";
 import { useAuthStore } from "@/store/authStore";
 
 export default {
@@ -117,12 +118,10 @@ export default {
     item: {
       immediate: true,
       handler(newItem) {
-        console.log("item dari props:", newItem); // DEBUG
         if (newItem && newItem.sosialid && this.isEdit) {
-          // Set form hanya jika dalam mode edit dan item valid
           this.form = { ...newItem };
         } else {
-          this.resetForm(); // Reset form jika dalam mode tambah
+          this.resetForm();
         }
       },
     },
@@ -148,18 +147,24 @@ export default {
       const token = authStore.token;
 
       if (!token) {
-        alert("Token tidak valid, silakan login kembali!");
+        Swal.fire({
+          icon: "error",
+          title: "Token tidak valid",
+          text: "Silakan login kembali!",
+        });
         return;
       }
 
       if (this.isEdit) {
         if (!this.form.sosialid || isNaN(parseInt(this.form.sosialid))) {
-          alert("ID sosial tidak valid.");
+          Swal.fire({
+            icon: "error",
+            title: "ID tidak valid",
+            text: "ID sosial tidak valid.",
+          });
           return;
         }
       }
-
-      console.log("Submit form dengan data:", this.form);
 
       try {
         if (this.isEdit) {
@@ -170,23 +175,37 @@ export default {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          alert("Data sosial berhasil diedit!");
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: "Data sosial berhasil diedit!",
+          });
         } else {
           await axios.post("http://localhost:3000/api/sosial", this.form, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          alert("Data sosial berhasil ditambahkan!");
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: "Data sosial berhasil ditambahkan!",
+          });
         }
-        // Emit submit dan reset form hanya setelah berhasil submit
+
         this.$emit("submit", this.form);
-        this.resetForm(); // Reset form setelah data berhasil disubmit
+        this.resetForm();
       } catch (error) {
         console.error("Gagal menyimpan data:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: "Terjadi kesalahan saat menyimpan data.",
+        });
       }
     },
   },
 };
 </script>
+
 
 <style scoped>
 form {

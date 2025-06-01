@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import formMasterData from "@/views/admin/formMasterData.vue";
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import Swal from "sweetalert2";
 
 const BASE_URL = "http://localhost:3000/api/user";
 const users = ref([]);
@@ -61,7 +62,14 @@ async function handleSubmit(user) {
       });
     }
     await fetchUsers();
-    alert(isEdit.value ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!");
+    Swal.fire({
+      icon: "success",
+      title: "Sukses",
+      text: isEdit.value
+        ? "Data berhasil diperbarui!"
+        : "Data berhasil ditambahkan!",
+    });
+
     closeForm();
   } catch {
     isLoading.value = false;
@@ -78,17 +86,37 @@ function exportToExcel() {
 }
 
 async function deleteUser(userid) {
-  if (!confirm("Apakah Anda yakin ingin menghapus user ini?")) return;
+  const result = await Swal.fire({
+    title: "Yakin hapus?",
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
+  });
+
+  if (!result.isConfirmed) return;
+
   isLoading.value = true;
   try {
     await axios.delete(`${BASE_URL}/${userid}`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
     users.value = users.value.filter((user) => user.userid !== userid);
-    alert("User berhasil dihapus.");
+    Swal.fire({
+      icon: "success",
+      title: "Terhapus!",
+      text: "User berhasil dihapus.",
+    });
   } catch (error) {
     console.error("Error deleting user:", error);
-    alert("Terjadi kesalahan saat menghapus user.");
+    Swal.fire({
+      icon: "error",
+      title: "Gagal",
+      text: "Terjadi kesalahan saat menghapus user.",
+    });
   } finally {
     isLoading.value = false;
   }
@@ -109,7 +137,9 @@ const filteredUsers = computed(() => {
 });
 
 // Hitung Total Halaman
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage));
+const totalPages = computed(() =>
+  Math.ceil(filteredUsers.value.length / itemsPerPage)
+);
 
 // Data yang Ditampilkan pada Halaman Aktif
 const paginatedUsers = computed(() => {
@@ -162,7 +192,9 @@ onMounted(fetchUsers);
 <template>
   <div class="master-data-container">
     <div class="card shadow-sm rounded-lg">
-      <div class="card-header d-flex justify-content-between align-items-center">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
         <h2 class="text-xl font-weight-bold mb-0">Master Data</h2>
         <input
           type="text"
@@ -171,8 +203,12 @@ onMounted(fetchUsers);
           class="search-input"
         />
         <div>
-          <button @click="showAddForm" class="btn btn-primary me-2"><i class="bi bi-clipboard-data"></i> Tambah Item</button>
-          <button @click="exportToExcel" class="btn btn-success"><i class="bi bi-file-earmark-spreadsheet"></i> Export</button>
+          <button @click="showAddForm" class="btn btn-primary me-2">
+            <i class="bi bi-clipboard-data"></i> Tambah Item
+          </button>
+          <button @click="exportToExcel" class="btn btn-success">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Export
+          </button>
         </div>
       </div>
 
@@ -211,8 +247,16 @@ onMounted(fetchUsers);
                 <td>{{ user.perkawinan }}</td>
                 <td>{{ user.statusHidup }}</td>
                 <td>
-                  <button @click="editUser(user)" class="btn btn-warning btn-sm"><i class="bi bi-pencil-square"></i> Edit</button>
-                  <button @click="deleteUser(user.userid)" class="btn btn-danger btn-sm ms-2">
+                  <button
+                    @click="editUser(user)"
+                    class="btn btn-warning btn-sm"
+                  >
+                    <i class="bi bi-pencil-square"></i> Edit
+                  </button>
+                  <button
+                    @click="deleteUser(user.userid)"
+                    class="btn btn-danger btn-sm ms-2"
+                  >
                     <i class="bi bi-trash-fill"></i> Hapus
                   </button>
                 </td>
@@ -222,11 +266,19 @@ onMounted(fetchUsers);
 
           <!-- Navigasi Pagination -->
           <div class="pagination mt-3 d-flex justify-content-center">
-            <button @click="prevPage" :disabled="currentPage === 1" class="btn btn-secondary me-2">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="btn btn-secondary me-2"
+            >
               Previous
             </button>
             <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-secondary ms-2">
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="btn btn-secondary ms-2"
+            >
               Next
             </button>
           </div>
@@ -235,11 +287,12 @@ onMounted(fetchUsers);
     </div>
 
     <ModalApp v-model:visible="showForm">
-      <formMasterData 
-      :item="selectedItem" 
-      :isEdit="isEdit" 
-      @submit="handleSubmit" 
-      @cancel="closeForm" />
+      <formMasterData
+        :item="selectedItem"
+        :isEdit="isEdit"
+        @submit="handleSubmit"
+        @cancel="closeForm"
+      />
     </ModalApp>
   </div>
 </template>
