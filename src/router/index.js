@@ -1,21 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router";
-//import Dashboard from "../views/Dashboard.vue";
 import Login from "../components/auth/Login.vue";
 import Register from "../components/auth/Register.vue";
-//import homeDesa from "../views/profileDesa/homeDesa.vue";
 import dashboardPH from "../views/dashboardPH.vue";
-//import dashboardWH from "../views/dashboardWH.vue";
-
-// Import the new role-based view components
 import AdminView from "../views/admin/AdminView.vue";
 import UserView from "../views/user/UserView.vue";
 import profileView from "../views/profileDesa/profileView.vue";
 import FrontView from "../views/front/FrontView.vue";
-
-// Helper function to retrieve role from localStorage
+import { useUIStore } from "@/store/uiStore";
 
 const getUserRole = () => {
-  return localStorage.getItem("role") || "ADMIN"; 
+  return localStorage.getItem("role"); 
 };
 
 const routes = [
@@ -48,6 +42,7 @@ const routes = [
   {
     path: "/homeDesa",
     component: profileView,
+    meta: { layout: "homeDesa" },
     children: [
       { path: "/cekBansos", component: () => import("../views/profileDesa/cekBansos.vue") },
       { path: "/beritaDesa", component: () => import("../views/profileDesa/beritaDesa.vue") },
@@ -59,6 +54,7 @@ const routes = [
   {
     path: "/admin",
     component: AdminView,
+    meta: { requiresAuth: true, layout: "dashboard", role: "ADMIN" },
     children: [
       { path: "", component: () => import("../views/admin/dashboardAdmin.vue") },
       { path: "master-data", component: () => import("../views/admin/masterData.vue") },
@@ -76,6 +72,7 @@ const routes = [
   {
     path: "/front",
     component: FrontView,
+    meta: { requiresAuth: true, layout: "dashboard", role: "FO" },
     children: [
       { path: "", component: () => import("../views/front/dashboardFront.vue") },
       { path: "pengajuan-masuk", component: () => import("../views/front/pengajuanMasuk.vue") },
@@ -90,6 +87,7 @@ const routes = [
   {
     path: "/user",
     component: UserView,
+    meta: { requiresAuth: true, layout: "dashboard", role: "USER" },
     children: [
       { path: "", component: dashboardPH },
       { path: "profile", component: () => import("../views/user/profileUser.vue") },
@@ -113,17 +111,20 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = Boolean(localStorage.getItem("auth")); 
-  const userRole = localStorage.getItem("role"); 
+  const isAuthenticated = Boolean(localStorage.getItem("auth"));
+  const userRole = localStorage.getItem("role");
+
+  // --- Tambahan untuk atur layout sebelum render ---
+  const uiStore = useUIStore();
+  uiStore.layout = to.meta.layout || "";  // ← penting agar layout langsung dikenali
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    alert("You need to login to access this page.");
-    next({ name: "login" });
-  } else if (to.meta.requiresAuth && isAuthenticated && to.meta.role !== userRole) {
-    alert("You do not have permission to access this page.");
-    next(false); 
+    next("/login");
+  } else if (to.meta.requiresAuth && to.meta.role && to.meta.role !== userRole) {
+    alert("Silahkan Login Untuk Masuk Ke Halaman Ini.");
+    next("/login");
   } else {
-    next(); 
+    next();
   }
 });
 

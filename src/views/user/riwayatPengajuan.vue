@@ -24,6 +24,8 @@
               <th>KK</th>
               <th>Keperluan</th>
               <th>Status</th>
+              <th>Lampiran</th>
+              <th>Catatan</th>
             </tr>
           </thead>
           <tbody>
@@ -31,48 +33,40 @@
               <td>
                 <span class="text-muted">#{{ pengajuan.pengajuanid }}</span>
               </td>
+              <td>{{ pengajuan.nik }}</td>
+              <td>{{ pengajuan.nama }}</td>
+              <td>{{ pengajuan.alamat }}</td>
+              <td>{{ pengajuan.noHp }}</td>
               <td>
-                <div class="employee-name">{{ pengajuan.nik }}</div>
+                <img :src="`http://localhost:3000/uploads/${pengajuan.ktp}`" alt="KTP" width="50" height="50" />
               </td>
               <td>
-                <div class="text-muted">{{ pengajuan.nama }}</div>
+                <img :src="`http://localhost:3000/uploads/${pengajuan.kk}`" alt="KK" width="50" height="50" />
               </td>
+              <td>{{ pengajuan.keperluan }}</td>
               <td>
-                <div class="text-muted">{{ pengajuan.alamat }}</div>
-              </td>
-              <td>
-                <div class="text-muted">{{ pengajuan.noHp }}</div>
-              </td>
-              <td>
-                <!-- Menampilkan gambar KTP -->
-                <div>
-                  <img :src="`http://localhost:3000/uploads/${pengajuan.ktp}`" alt="KTP" width="50" height="50" />
-                </div>
-              </td>
-              <td>
-                <!-- Menampilkan gambar KK -->
-                <div>
-                  <img :src="`http://localhost:3000/uploads/${pengajuan.kk}`" alt="KK" width="50" height="50" />
-                </div>
-              </td>
-              <td>
-                <div class="text-muted">{{ pengajuan.keperluan }}</div>
-              </td>
-              <td>
-                <span
-                  class="badge"
-                  :class="getStatusClass(pengajuan.statusPengajuan)"
-                >
+                <span class="badge" :class="getStatusClass(pengajuan.statusPengajuan)">
                   {{ pengajuan.statusPengajuan }}
                 </span>
               </td>
+              <td>
+                <button
+                  v-if="pengajuan.lampiran"
+                  class="btn btn-sm btn-success"
+                  @click="previewLampiran(`http://localhost:3000/uploads/${pengajuan.lampiran}`)"
+                >
+                  Lihat Lampiran
+                </button>
+                <span v-else class="text-muted">-</span>
+              </td>
+              <td>{{ pengajuan.catatan }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Modal Component -->
+    <!-- Modal Form -->
     <ModalApp v-model:visible="showForm">
       <FormSpk
         :visible="showForm"
@@ -129,8 +123,10 @@ export default {
           noHp: item.noHp,
           ktp: item.ktp,
           kk: item.kk,
+          lampiran: item.lampiran,
           keperluan: item.keperluan,
           statusPengajuan: item.statusPengajuan,
+          catatan: item.catatan
         }));
       } catch (error) {
         console.error("Error fetching Pengajuan:", error);
@@ -169,6 +165,9 @@ export default {
       this.showForm = true;
     },
 
+    previewLampiran(fileUrl) {
+  window.open(fileUrl, "_blank");
+},
     closeForm() {
       // Menutup modal dan reset data
       this.showForm = false;
@@ -181,7 +180,7 @@ export default {
           return "badge-success";
         case "PENGIRIMAN":
           return "badge-warning";
-        case "ON_PROCESS":
+        case "TOLAK":
           return "badge-danger";
         default:
           return "badge-default";

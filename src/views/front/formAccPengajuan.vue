@@ -1,13 +1,8 @@
 <template>
   <ModalApp :visible="localVisible" @update:visible="updateVisible">
     <div class="form-container">
+      <h3 class="form-title">Pengajuan Masuk</h3>
       <form @submit.prevent="submitForm">
-        <h3 class="form-title">Proses Pengajuan</h3>
-        <hr>
-        <div class="form-group">
-          <label>ID</label>
-          <input type="number" v-model="formItem.pengajuanid" readonly class="form-control" />
-        </div>
         <div class="form-group">
           <label>NIK</label>
           <input type="number" v-model="formItem.nik" readonly class="form-control" />
@@ -28,10 +23,7 @@
           <label>Keperluan</label>
           <input type="text" v-model="formItem.keperluan" readonly class="form-control" />
         </div>
-        <div class="form-group">
-          <label>Tanggal</label>
-          <input type="text" v-model="formItem.tanggalPengajuan" readonly class="form-control" />
-        </div>
+
         <div class="form-group">
           <label>Kartu Tanda Penduduk</label>
           <div class="image-container">
@@ -39,6 +31,7 @@
             <span class="eye-icon" @click="openPreview(`http://localhost:3000/uploads/${formItem.ktp}`)">👁️</span>
           </div>
         </div>
+
         <div class="form-group">
           <label>Kartu Keluarga</label>
           <div class="image-container">
@@ -46,14 +39,27 @@
             <span class="eye-icon" @click="openPreview(`http://localhost:3000/uploads/${formItem.kk}`)">👁️</span>
           </div>
         </div>
+
+        <div class="form-group">
+          <label>Dokumen Penunjang</label>
+          <br />
+          <button type="button" class="btn btn-primary" @click="previewDokumen" v-if="formItem.lampiran">Preview PDF</button>
+          <span v-else class="text-muted">Tidak ada dokumen</span>
+        </div>
+
         <div class="form-group">
           <label>Status Pengajuan</label>
           <select v-model="formItem.statusPengajuan" class="form-control">
+            <option value="TOLAK">Tolak</option>
             <option value="PENDING">Pending</option>
-            <option value="ON_PROCESS">On Process</option>
-            <option value="MENUNGGU_TTD">Proses Tanda Tangan</option>
+            <option value="ON_PROCESS">On Proses</option>
+            <option value="MENUNGGU_TTD">Proses Tanda Tangan Kades</option>
             <option value="SELESAI">Selesai</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>Catatan</label>
+          <input type="text" v-model="formItem.catatan" class="form-control" />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-success">Simpan</button>
@@ -61,11 +67,12 @@
         </div>
       </form>
     </div>
-    <!-- Modal Preview Gambar -->
-    <div v-if="showPreview" class="preview-modal">
+
+    <!-- Preview Modal -->
+    <div v-if="showPreview" class="preview-modal" @click.self="showPreview = false">
       <div class="preview-content">
         <span class="close-btn" @click="showPreview = false">&times;</span>
-        <img :src="previewImageUrl" class="preview-full" />
+        <img :src="previewImageUrl" alt="Preview" class="preview-full" />
       </div>
     </div>
   </ModalApp>
@@ -96,13 +103,19 @@ export default {
       showPreview.value = true;
     };
 
-    watch(() => props.visible, (newVal) => {
-      localVisible.value = newVal;
-    });
+    watch(
+      () => props.visible,
+      (newVal) => {
+        localVisible.value = newVal;
+      }
+    );
 
-    watch(() => props.item, (newVal) => {
-      formItem.value = { ...newVal };
-    });
+    watch(
+      () => props.item,
+      (newVal) => {
+        formItem.value = { ...newVal };
+      }
+    );
 
     const updateVisible = (value) => {
       emit("update:visible", value);
@@ -112,18 +125,21 @@ export default {
       emit("update:visible", false);
     };
 
+    const previewDokumen = () => {
+      const dokumenUrl = `http://localhost:3000/uploads/${formItem.value.lampiran}`;
+      window.open(dokumenUrl, "_blank");
+    };
+
     const submitForm = async () => {
       const authStore = useAuthStore();
-
       try {
         await axios.patch(
           `http://localhost:3000/api/pengajuan/${formItem.value.pengajuanid}`,
           { statusPengajuan: formItem.value.statusPengajuan },
           { headers: { Authorization: `Bearer ${authStore.token}` } }
         );
-      
         emit("updateStatus", formItem.value);
-        alert("Update Status Berhasil !")
+        alert("Update Status Berhasil!");
         closeModal();
       } catch (error) {
         console.error("Gagal memperbarui status pengajuan:", error);
@@ -138,6 +154,7 @@ export default {
       submitForm,
       showPreview,
       previewImageUrl,
+      previewDokumen,
       openPreview,
     };
   },
@@ -146,7 +163,7 @@ export default {
 
 <style scoped>
 form {
-  margin-top: 700px; /* Jarak antara form dan header */
+  margin-top: 600px; /* Jarak antara form dan header */
 }
 .form-container {
   max-width: 600px;
@@ -208,11 +225,12 @@ form {
   top: 8px;
   right: 8px;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   background-color: white;
   border-radius: 4px;
-  padding: 2px 5px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  padding: 2px 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  user-select: none;
 }
 
 .preview-modal {

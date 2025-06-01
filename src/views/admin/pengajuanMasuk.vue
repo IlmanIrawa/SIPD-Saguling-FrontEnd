@@ -69,7 +69,7 @@
               <td>
                 <div v-if="pengajuan.dokumenPenunjang">
                   <a
-                    :href="`http://localhost:3000/uploads/${pengajuan.dokumenPenunjang}`"
+                    :href="`http://localhost:3000/uploads/${pengajuan.lampiran}`"
                     target="_blank"
                     class="btn btn-sm btn-primary"
                   >
@@ -167,7 +167,7 @@ export default {
           noHp: item.noHp,
           ktp: item.ktp,
           kk: item.kk,
-          dokumenPenunjang: item.dokumenPenunjang,
+          lampiran: item.lampiran,
           keperluan: item.keperluan,
           statusPengajuan: item.statusPengajuan,
         }));

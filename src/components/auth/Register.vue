@@ -2,7 +2,7 @@
 import { ref, onBeforeUnmount, onBeforeMount } from "vue";
 import { useUIStore } from "@/store/uiStore";
 import { register as registerService } from "@/services/authService";
-//import Navbar from "@/examples/PageLayout/Navbar.vue";
+import Swal from "sweetalert2";
 import ArgonInput from "@/components/ArgonInput.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 
@@ -42,20 +42,22 @@ onBeforeUnmount(() => {
 
 // Methods
 const register = async () => {
-  error.value = ""; // Reset error message
-  
-  // Parse nik to ensure it is an integer
+  error.value = "";
+
   const parsedNik = parseInt(nik.value, 10);
 
-  // Check if nik is a valid integer
   if (isNaN(parsedNik)) {
-    error.value = "NIK harus berupa angka.";
-    return; // Stop execution if NIK is not valid
+    Swal.fire({
+      icon: "warning",
+      title: "NIK Tidak Valid",
+      text: "NIK harus berupa angka.",
+    });
+    return;
   }
 
   try {
     const response = await registerService(
-      parsedNik, // Use the parsed integer value of NIK
+      parsedNik,
       nama.value,
       jenisKelamin.value,
       tanggalLahir.value,
@@ -68,7 +70,16 @@ const register = async () => {
       password.value
     );
     console.log("Registration successful:", response);
-    alert("Registration successful!");
+
+    await Swal.fire({
+      icon: "success",
+      title: "Registrasi Berhasil!",
+      text: "Akun Anda telah berhasil dibuat.",
+      confirmButtonText: "OK",
+    });
+
+    //window.location.href = "/Login";
+
     // Reset form
     nik.value = "";
     nama.value = "";
@@ -83,25 +94,20 @@ const register = async () => {
     password.value = "";
   } catch (e) {
     error.value =
-      e.response?.data.message || e.message || "An unexpected error occurred";
+      e.response?.data.message || e.message || "Terjadi kesalahan tidak terduga";
     console.error("Registration failed:", error.value);
+
+    Swal.fire({
+      icon: "error",
+      title: "Registrasi Gagal",
+      text: error.value,
+    });
   }
 };
 </script>
 
 <template>
-  <!-- Navbar -->
-  <div class="container top-0 position-sticky z-index-sticky">
-    <div class="row">
-      <div class="col-12">
-        <Navbar isBtn="bg-gradient-light" />
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Content -->
   <main class="main-content mt-0">
-    <!-- Header Section -->
     <div
       class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
       style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg');
@@ -120,7 +126,6 @@ const register = async () => {
       </div>
     </div>
 
-    <!-- Register Form -->
     <div class="container">
       <div class="row mt-lg-n10 mt-md-n11 mt-n10 justify-content-center">
         <div class="col-xl-4 col-lg-5 col-md-7 mx-auto">
@@ -129,107 +134,28 @@ const register = async () => {
               <h5>Registrasi</h5>
             </div>
 
-            <!-- Error Message -->
-            <div v-if="error" class="alert alert-danger text-center">
-              {{ error }}
-            </div>
-
-            <!-- Form -->
             <div class="card-body">
               <form @submit.prevent="register">
-                <ArgonInput
-                  v-model="nik"
-                  id="nik"
-                  type="number"
-                  placeholder="nik"
-                  aria-label="nik"
-                />
-                <ArgonInput
-                  v-model="nama"
-                  id="nama"
-                  type="text"
-                  placeholder="nama"
-                  aria-label="nama"
-                />
-                <ArgonInput
-                  v-model="jenisKelamin"
-                  id="jenisKelamin"
-                  type="text"
-                  placeholder="JenisKelamin"
-                  aria-label="jenisKelamin"
-                />
-                <ArgonInput
-                  v-model="tanggalLahir"
-                  id="tanggalLahir"
-                  type="date"
-                  placeholder="tanggalLahir"
-                  aria-label="tanggalLahir"
-                />
-                <ArgonInput
-                  v-model="email"
-                  id="email"
-                  type="email"
-                  placeholder="Email"
-                  aria-label="Email"
-                />
-                <ArgonInput
-                  v-model="alamat"
-                  id="alamat"
-                  type="text"
-                  placeholder="alamat"
-                  aria-label="alamat"
-                />
-                <ArgonInput
-                  v-model="pendidikan"
-                  id="pendidikan"
-                  type="text"
-                  placeholder="pendidikan"
-                  aria-label="pendidikan"
-                />
-                <ArgonInput
-                  v-model="pekerjaan"
-                  id="pekerjaan"
-                  type="text"
-                  placeholder="pekerjaan"
-                  aria-label="pekerjaan"
-                />
-                <ArgonInput
-                  v-model="agama"
-                  id="agama"
-                  type="text"
-                  placeholder="agama"
-                  aria-label="agama"
-                />
-                <ArgonInput
-                  v-model="perkawinan"
-                  id="perkawinan"
-                  type="text"
-                  placeholder="perkawinan"
-                  aria-label="perkawinan"
-                />
-                <ArgonInput
-                  v-model="password"
-                  id="password"
-                  type="password"
-                  placeholder="Password"
-                  aria-label="Password"
-                />
+                <ArgonInput v-model="nik" type="number" placeholder="NIK" />
+                <ArgonInput v-model="nama" type="text" placeholder="Nama" />
+                <ArgonInput v-model="jenisKelamin" type="text" placeholder="Jenis Kelamin" />
+                <ArgonInput v-model="tanggalLahir" type="date" placeholder="Tanggal Lahir" />
+                <ArgonInput v-model="email" type="email" placeholder="Email" />
+                <ArgonInput v-model="alamat" type="text" placeholder="Alamat" />
+                <ArgonInput v-model="pendidikan" type="text" placeholder="Pendidikan" />
+                <ArgonInput v-model="pekerjaan" type="text" placeholder="Pekerjaan" />
+                <ArgonInput v-model="agama" type="text" placeholder="Agama" />
+                <ArgonInput v-model="perkawinan" type="text" placeholder="Status Perkawinan" />
+                <ArgonInput v-model="password" type="password" placeholder="Password" />
 
-                <!-- Submit Button -->
                 <div class="text-center">
-                  <ArgonButton
-                    type="submit"
-                    color="primary"
-                    class="w-100 mt-4 mb-3"
-                  >
+                  <ArgonButton type="submit" color="primary" class="w-100 mt-4 mb-3">
                     Register
                   </ArgonButton>
                 </div>
-                <p class="text-sm mt-3 mb-0">
-                  Already have an account?
-                  <a href="/Login" class="text-dark font-weight-bolder"
-                    >Login</a
-                  >
+                <p class="text-sm mt-3 mb-0 text-center">
+                  Sudah punya akun?
+                  <a href="/Login" class="text-dark font-weight-bolder">Login</a>
                 </p>
               </form>
             </div>
@@ -241,7 +167,6 @@ const register = async () => {
 </template>
 
 <style scoped>
-/* Tambahan style jika dibutuhkan */
 .alert {
   margin-bottom: 1rem;
 }

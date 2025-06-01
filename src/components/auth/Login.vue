@@ -1,76 +1,3 @@
-<script setup>
-import { onBeforeUnmount, onBeforeMount, ref } from "vue";
-import { useAuthStore } from "@/store/authStore"; 
-import { login as loginService } from "@/services/authService"; 
-import { useUIStore } from "@/store/uiStore";
-//import Navbar from "@/examples/PageLayout/Navbar.vue";
-import ArgonInput from "@/components/ArgonInput.vue";
-import ArgonSwitch from "@/components/ArgonSwitch.vue";
-import ArgonButton from "@/components/ArgonButton.vue";
-
-const uiStore = useUIStore();
-const authStore = useAuthStore();
-
-// Variabel untuk form input
-const nik = ref("");
-const password = ref("");
-const error = ref("");
-
-// Lifecycle Hooks
-onBeforeMount(() => {
-  uiStore.hideConfigButton = true;
-  uiStore.showNavbar = false;
-  uiStore.showSidenav = false;
-  uiStore.showFooter = false;
-  document.body.classList.remove("bg-gray-100");
-});
-
-onBeforeUnmount(() => {
-  uiStore.hideConfigButton = false;
-  uiStore.showNavbar = true;
-  uiStore.showSidenav = true;
-  uiStore.showFooter = true;
-  document.body.classList.add("bg-gray-100");
-});
-
-// Fungsi login
-const login = async () => {
-  if (!nik.value || !password.value) {
-    error.value = "nik dan Password tidak boleh kosong!";
-    return;
-  }
-
-  try {
-    // Mengkonversi nik menjadi integer
-    const nikInt = parseInt(nik.value, 10);
-
-    if (isNaN(nikInt)) {
-      error.value = "NIK harus berupa angka!";
-      return;
-    }
-
-    const { token, role } = await loginService(nikInt, password.value);
-
-    authStore.setToken(token);
-    authStore.setRole(role);
-    // Simpan role ke localStorage
-    localStorage.setItem("userRole", role); 
-
-    alert("Login Success");
-    if (role === "ADMIN") {
-      window.location.href = "/admin";
-    } else if (role === "USER") {
-      window.location.href = "/user";
-    }else if (role === "FO"){
-      window.location.href = "/front";
-    }
-  } catch (err) {
-    error.value = "Login Gagal Periksa Email atau Password";
-    alert("Login Gagal Periksa Email atau Password");
-  }
-};
-</script>
-
 <template>
   <div class="container top-0 position-sticky z-index-sticky">
     <div class="row">
@@ -88,15 +15,11 @@ const login = async () => {
       <div class="page-header min-vh-100">
         <div class="container">
           <div class="row">
-            <div
-              class="mx-auto col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0"
-            >
+            <div class="mx-auto col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0">
               <div class="card card-plain">
                 <div class="pb-0 card-header text-start">
                   <h4 class="font-weight-bolder">Login</h4>
-                  <p class="mb-0">
-                    Masukan NIK dan Password untuk Login 
-                  </p>
+                  <p class="mb-0">Masukkan NIK dan Password untuk Login</p>
                 </div>
                 <div class="card-body">
                   <form @submit.prevent="login">
@@ -152,11 +75,11 @@ const login = async () => {
                   </p>
                 </div>
                 <div class="px-1 pt-0 text-center card-footer px-lg-2">
-                    <a
-                      href="/"
-                      class="text-success text-gradient font-weight-bold"
-                      ><i class="bi bi-houses-fill"></i> Back To Home</a
-                    >
+                  <a
+                    href="/"
+                    class="text-success text-gradient font-weight-bold"
+                    ><i class="bi bi-houses-fill"></i> Back To Home</a
+                  >
                 </div>
               </div>
             </div>
@@ -171,9 +94,7 @@ const login = async () => {
                 "
               >
                 <span class="mask bg-gradient-success opacity-6"></span>
-                <h4
-                  class="mt-5 text-white font-weight-bolder position-relative"
-                >
+                <h4 class="mt-5 text-white font-weight-bolder position-relative">
                   "Desa Saguling"
                 </h4>
                 <p class="text-white position-relative">
@@ -187,3 +108,106 @@ const login = async () => {
     </section>
   </main>
 </template>
+
+<script setup>
+import { onBeforeUnmount, onBeforeMount, ref } from "vue";
+import { useAuthStore } from "@/store/authStore";
+import { login as loginService } from "@/services/authService";
+import { useUIStore } from "@/store/uiStore";
+import ArgonInput from "@/components/ArgonInput.vue";
+import ArgonSwitch from "@/components/ArgonSwitch.vue";
+import ArgonButton from "@/components/ArgonButton.vue";
+import Swal from "sweetalert2";
+
+const uiStore = useUIStore();
+const authStore = useAuthStore();
+
+const nik = ref("");
+const password = ref("");
+const error = ref("");
+
+// Lifecycle Hooks
+onBeforeMount(() => {
+  uiStore.hideConfigButton = true;
+  uiStore.showNavbar = false;
+  uiStore.showSidenav = false;
+  uiStore.showFooter = false;
+  document.body.classList.remove("bg-gray-100");
+});
+
+onBeforeUnmount(() => {
+  uiStore.hideConfigButton = false;
+  uiStore.showNavbar = true;
+  uiStore.showSidenav = true;
+  uiStore.showFooter = true;
+  document.body.classList.add("bg-gray-100");
+});
+
+// Fungsi login
+const login = async () => {
+  if (!nik.value || !password.value) {
+    error.value = "NIK dan Password tidak boleh kosong!";
+    Swal.fire({
+      icon: "warning",
+      title: "Peringatan",
+      text: error.value,
+    }).then(() => {
+      nik.value = "";
+      password.value = "";
+      error.value = "";
+    });
+    return;
+  }
+
+  try {
+    const nikInt = parseInt(nik.value, 10);
+    if (isNaN(nikInt)) {
+      error.value = "NIK harus berupa angka!";
+      Swal.fire({
+        icon: "error",
+        title: "Format NIK Salah",
+        text: error.value,
+      }).then(() => {
+        nik.value = "";
+        password.value = "";
+        error.value = "";
+      });
+      return;
+    }
+
+    const { token, role } = await loginService(nikInt, password.value);
+
+    authStore.setToken(token);
+    authStore.setRole(role);
+    localStorage.setItem("userRole", role);
+
+    await Swal.fire({
+      icon: "success",
+      title: "Berhasil Login",
+      text: `Selamat datang !`,
+      timer: 2000,
+      showConfirmButton: false,
+    });
+
+    if (role === "ADMIN") {
+      window.location.href = "/admin";
+    } else if (role === "USER") {
+      window.location.href = "/user";
+    } else if (role === "FO") {
+      window.location.href = "/front";
+    }
+  } catch (err) {
+    error.value = "Login gagal! Periksa NIK atau Password Anda.";
+    Swal.fire({
+      icon: "error",
+      title: "Login Gagal",
+      text: error.value,
+    }).then(() => {
+      nik.value = "";
+      password.value = "";
+      error.value = "";
+    });
+  }
+};
+
+</script>

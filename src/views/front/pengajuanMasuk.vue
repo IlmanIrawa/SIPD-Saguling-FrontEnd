@@ -21,32 +21,78 @@
               <th>Handphone</th>
               <th>KTP</th>
               <th>KK</th>
+              <th>Dokumen Penunjang</th>
               <th>Keperluan</th>
-              <th>Tanggal</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="pengajuan in paginatedPengajuan" :key="pengajuan.pengajuanid">
-              <td>#{{ pengajuan.pengajuanid }}</td>
-              <td>{{ pengajuan.nik }}</td>
-              <td>{{ pengajuan.nama }}</td>
-              <td>{{ pengajuan.alamat }}</td>
-              <td>{{ pengajuan.noHp }}</td>
+            <tr v-for="pengajuan in pengajuan" :key="pengajuan.pengajuanid">
               <td>
-                <img :src="`http://localhost:3000/uploads/${pengajuan.ktp}`" alt="KTP" width="50" height="50" />
+                <span class="text-muted">#{{ pengajuan.pengajuanid }}</span>
               </td>
               <td>
-                <img :src="`http://localhost:3000/uploads/${pengajuan.kk}`" alt="KK" width="50" height="50" />
+                <div class="employee-name">{{ pengajuan.nik }}</div>
               </td>
-              <td>{{ pengajuan.keperluan }}</td>
-              <td>{{ formatTanggal(pengajuan.tanggalPengajuan) }}</td>
               <td>
-                <span class="badge" :class="getStatusClass(pengajuan.statusPengajuan)">
+                <div class="text-muted">{{ pengajuan.nama }}</div>
+              </td>
+              <td>
+                <div class="text-muted">{{ pengajuan.alamat }}</div>
+              </td>
+              <td>
+                <div class="text-muted">{{ pengajuan.noHp }}</div>
+              </td>
+              <td>
+                <!-- Menampilkan gambar KTP -->
+                <div>
+                  <img
+                    :src="`http://localhost:3000/uploads/${pengajuan.ktp}`"
+                    alt="KTP"
+                    width="50"
+                    height="50"
+                  />
+                </div>
+              </td>
+              <td>
+                <!-- Menampilkan gambar KK -->
+                <div>
+                  <img
+                    :src="`http://localhost:3000/uploads/${pengajuan.kk}`"
+                    alt="KK"
+                    width="50"
+                    height="50"
+                  />
+                </div>
+              </td>
+              <td>
+                <div v-if="pengajuan.lampiran">
+                  <a
+                    :href="`http://localhost:3000/uploads/${pengajuan.lampiran}`"
+                    target="_blank"
+                    class="btn btn-sm btn-primary"
+                  >
+                    Lihat PDF
+                  </a>
+                </div>
+                <div v-else>
+                  <span class="text-muted">-</span>
+                </div>
+              </td>
+
+              <td>
+                <div class="text-muted">{{ pengajuan.keperluan }}</div>
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  :class="getStatusClass(pengajuan.statusPengajuan)"
+                >
                   {{ pengajuan.statusPengajuan }}
                 </span>
               </td>
+
               <td>
                 <button
                   type="button"
@@ -54,20 +100,16 @@
                   @click="openModal(pengajuan)"
                   :disabled="pengajuan.statusPengajuan === 'SELESAI'"
                 >
-                  Terima
+                  <i class="bi bi-check2-square">Terima</i>
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination">
-        <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
-        <span>Page {{ currentPage }} of {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-      </div>
     </div>
 
+    <!-- Modal Component -->
     <ModalApp :visible="showForm" @update:visible="showForm = $event">
       <formAccPengajuan
         :visible="showForm"
@@ -87,69 +129,102 @@ import ModalApp from "@/views/ModalApp.vue";
 import formAccPengajuan from "@/views/front/formAccPengajuan.vue";
 
 export default {
-  components: { ModalApp, formAccPengajuan },
+  name: "pengajuanMasuk",
+  components: {
+    ModalApp,
+    formAccPengajuan,
+  },
   data() {
     return {
-      pengajuan: [],
+      pengajuan: [], // Data pengajuan
       showForm: false,
       selectedPengajuan: null,
-      searchQuery: "",
-      currentPage: 1,
-      perPage: 10,
     };
-  },
-  computed: {
-    filteredPengajuan() {
-      return this.pengajuan.filter((item) =>
-        Object.values(item).some((val) =>
-          String(val).toLowerCase().includes(this.searchQuery.toLowerCase())
-        )
-      );
-    },
-    paginatedPengajuan() {
-      const start = (this.currentPage - 1) * this.perPage;
-      return this.filteredPengajuan.slice(start, start + this.perPage);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredPengajuan.length / this.perPage);
-    },
   },
   methods: {
     async fetchPengajuan() {
       const authStore = useAuthStore();
-      if (!authStore.token) return;
+      if (!authStore.token) {
+        console.error("Token kosong! Tidak dapat melakukan permintaan API.");
+        return;
+      }
       try {
-        const { data } = await axios.get("http://localhost:3000/api/pengajuan", {
-          headers: { Authorization: `Bearer ${authStore.token}` },
-        });
-        this.pengajuan = data;
+        const response = await axios.get(
+          "http://localhost:3000/api/pengajuan",
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          }
+        );
+
+        // Proses data pengajuan
+        this.pengajuan = response.data.map((item) => ({
+          pengajuanid: item.pengajuanid,
+          nik: item.nik,
+          nama: item.nama,
+          alamat: item.alamat,
+          noHp: item.noHp,
+          ktp: item.ktp,
+          kk: item.kk,
+          lampiran: item.lampiran,
+          keperluan: item.keperluan,
+          statusPengajuan: item.statusPengajuan,
+        }));
       } catch (error) {
         console.error("Error fetching Pengajuan:", error);
       }
     },
-    formatTanggal(tanggal) {
-      return tanggal ? new Date(tanggal).toISOString().split("T")[0] : "";
+
+    async handleSubmit(updatedData) {
+      const authStore = useAuthStore();
+      if (!authStore.token) {
+        console.error("Token kosong! Tidak dapat melakukan permintaan API.");
+        return;
+      }
+
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/api/pengajuan",
+          updatedData,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          }
+        );
+
+        console.log("Pengajuan berhasil diperbarui:", response.data);
+        this.fetchPengajuan(); // Refresh data
+        this.closeForm();
+      } catch (error) {
+        console.error("Error updating Pengajuan:", error);
+      }
     },
+
     openModal(pengajuan) {
+      // Menampilkan modal dengan data yang dipilih
       this.selectedPengajuan = pengajuan;
       this.showForm = true;
     },
+
     closeForm() {
+      // Menutup modal dan reset data
       this.showForm = false;
       this.selectedPengajuan = null;
     },
-    getStatusClass(status) {
-      return {
-        SELESAI: "badge-success",
-        PENGIRIMAN: "badge-warning",
-        ON_PROCESS: "badge-danger",
-      }[status] || "badge-default";
-    },
-    nextPage() {
-      if (this.currentPage < this.totalPages) this.currentPage++;
-    },
-    prevPage() {
-      if (this.currentPage > 1) this.currentPage--;
+
+    getStatusClass(statusPengajuan) {
+      switch (statusPengajuan) {
+        case "SELESAI":
+          return "badge-success";
+        case "PENGIRIMAN":
+          return "badge-warning";
+        case "ON_PROCESS":
+          return "badge-danger";
+        default:
+          return "badge-default";
+      }
     },
   },
   mounted() {
@@ -159,16 +234,6 @@ export default {
 </script>
 
 <style scoped>
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-.pagination button {
-  margin: 0 5px;
-  padding: 8px 12px;
-  cursor: pointer;
-}
 /* CSS Lengkap */
 .history-container {
   background-color: #f4f7fa;

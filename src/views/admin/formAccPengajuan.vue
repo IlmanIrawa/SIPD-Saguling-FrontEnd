@@ -74,7 +74,7 @@
             type="button"
             class="btn btn-primary"
             @click="previewDokumen"
-            v-if="formItem.dokumenPenunjang"
+            v-if="formItem.lampiran"
           >
             Preview PDF
           </button>
@@ -84,11 +84,20 @@
         <div class="form-group">
           <label>Status Pengajuan</label>
           <select v-model="formItem.statusPengajuan" class="form-control">
+            <option value="TOLAK">Tolak</option>
             <option value="PENDING">Pending</option>
             <option value="ON_PROCESS">On Proses</option>
             <option value="MENUNGGU_TTD">Proses Tanda Tangan Kades</option>
             <option value="SELESAI">Selesai</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>Catatan</label>
+          <input
+            type="Text"
+            v-model="formItem.catatan"
+            class="form-control"
+          />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-success">Simpan</button>
@@ -134,7 +143,7 @@ export default {
     );
 
     const previewDokumen = () => {
-  const dokumenUrl = `http://localhost:3000/uploads/${formItem.value.dokumenPenunjang}`;
+    const dokumenUrl = `http://localhost:3000/uploads/${formItem.value.lampiran}`;
   window.open(dokumenUrl, "_blank");
 };
 

@@ -34,15 +34,20 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 let leafletMap = null
 
 onMounted(() => {
-  if (leafletMap) leafletMap.remove()
+  // Jika elemen map sudah terinisialisasi sebelumnya, reset _leaflet_id untuk menghindari error
+  const mapContainer = L.DomUtil.get('map')
+  if (mapContainer?._leaflet_id != null) {
+    mapContainer._leaflet_id = null
+  }
 
+  // Inisialisasi peta
   leafletMap = L.map('map').setView([-6.8909892, 107.3671431], 14)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -54,7 +59,16 @@ onMounted(() => {
     .bindPopup('<b>Desa Saguling</b><br>Kecamatan Saguling, Bandung Barat')
     .openPopup()
 })
+
+// Bersihkan map saat komponen dilepas dari DOM
+onBeforeUnmount(() => {
+  if (leafletMap) {
+    leafletMap.remove()
+    leafletMap = null
+  }
+})
 </script>
+
 
 <style scoped>
 #map {

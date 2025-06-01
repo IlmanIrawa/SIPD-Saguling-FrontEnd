@@ -5,7 +5,7 @@
         <h5 class="mb-0">Form Pengajuan Administrasi</h5>
       </div>
       <div class="card-body">
-        <form @submit.prevent="submitPengajuan">
+        <form @submit.prevent="submitPengajuan" enctype="multipart/form-data">
           <div class="mb-3">
             <label for="nik" class="form-label">NIK</label>
             <input
@@ -13,19 +13,16 @@
               id="nik"
               class="form-control"
               v-model="form.nik"
-              placeholder="NIK"
               required
             />
           </div>
 
-          <div class="mb-3">
-            <label for="nama" class="form-label">Nama</label>
+          <div class="mb-3"><label for="nama" class="form-label">Nama</label>
             <input
               type="text"
               id="nama"
               class="form-control"
               v-model="form.nama"
-              placeholder="Nama"
               required
             />
           </div>
@@ -37,7 +34,6 @@
               id="alamat"
               class="form-control"
               v-model="form.alamat"
-              placeholder="Alamat"
               required
             />
           </div>
@@ -45,11 +41,10 @@
           <div class="mb-3">
             <label for="noHp" class="form-label">Handphone</label>
             <input
-              type="number"
+              type="tel"
               id="noHp"
               class="form-control"
               v-model="form.noHp"
-              placeholder="Handphone"
               required
             />
           </div>
@@ -59,8 +54,10 @@
             <input
               type="file"
               id="ktp"
+              name="ktp"
               class="form-control"
               @change="handleFileUpload($event, 'ktp')"
+              required
             />
           </div>
 
@@ -69,32 +66,37 @@
             <input
               type="file"
               id="kk"
+              name="kk"
               class="form-control"
               @change="handleFileUpload($event, 'kk')"
+              required
             />
           </div>
 
           <div class="mb-3">
             <label for="keperluan" class="form-label">Pilih Keperluan</label>
-            <select id="keperluan" v-model="form.keperluan" class="form-select">
+            <select
+              id="keperluan"
+              class="form-select"
+              v-model="form.keperluan"
+              required
+            >
               <option disabled value="">-- Pilih Keperluan --</option>
-              <option
-                v-for="keperluan in keperluanList"
-                :key="keperluan"
-                :value="keperluan"
-              >
+              <option v-for="keperluan in keperluanList" :key="keperluan" :value="keperluan">
                 {{ keperluan }}
               </option>
             </select>
           </div>
 
           <div class="mb-3">
-            <label for="dokumenPenunjang" class="form-label">Dokumen Penunjang</label>
+            <label for="lampiran" class="form-label">Dokumen Penunjang</label>
             <input
               type="file"
-              id="dokumenPenunjang"
+              id="lampiran"
               class="form-control"
-              @change="handleFileUpload($event, 'dokumenPenunjang')"
+              name="lampiran"
+              @change="handleFileUpload($event, 'lampiran')"
+              required
             />
 
             <div class="alert alert-secondary mt-2 p-3">
@@ -120,9 +122,7 @@
         </form>
       </div>
       <div class="card-footer text-center">
-        <small
-          >Copyright © 2025 Detailed Desa Saguling. All rights reserved.</small
-        >
+        <small>Copyright © 2025 Detailed Desa Saguling</small>
       </div>
     </div>
   </div>
@@ -142,7 +142,7 @@ export default {
         noHp: "",
         ktp: null,
         kk: null,
-        dokumenPenunjang: null,
+        lampiran: null,
         keperluan: "",
       },
       keperluanList: [
@@ -156,29 +156,12 @@ export default {
   },
   methods: {
     handleFileUpload(event, field) {
-      this.form[field] = event.target.files[0];
+      const file = event.target.files[0];
+      if (file) {
+        this.form[field] = file;
+      }
     },
     async submitPengajuan() {
-      if (
-        !this.form.nik ||
-        !this.form.nama ||
-        !this.form.alamat ||
-        !this.form.noHp ||
-        !this.form.ktp ||
-        !this.form.kk ||
-        !this.form.keperluan ||
-        !this.form.dokumenPenunjang
-      ) {
-        alert("Semua field harus diisi.");
-        return;
-      }
-
-      // Cek apakah file di-upload
-      if (!this.form.ktp || !this.form.kk || !this.form.dokumenPenunjang) {
-        alert("Semua dokumen harus diunggah.");
-        return;
-      }
-
       try {
         const authStore = useAuthStore();
         const token = authStore.token || localStorage.getItem("jwt_token");
@@ -194,44 +177,49 @@ export default {
         formData.append("alamat", this.form.alamat);
         formData.append("noHp", this.form.noHp);
         formData.append("keperluan", this.form.keperluan);
-        formData.append("ktp", this.form.ktp, this.form.ktp.name);
-        formData.append("kk", this.form.kk, this.form.kk.name);
-        formData.append("dokumenPenunjang", this.form.dokumenPenunjang, this.form.dokumenPenunjang.name);
+        formData.append("ktp", this.form.ktp);
+        formData.append("kk", this.form.kk);
+        formData.append("lampiran", this.form.lampiran);
 
         console.log("Data yang dikirim:", [...formData.entries()]);
 
         await axios.post("http://localhost:3000/api/pengajuan", formData, {
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         });
 
-        alert("Data berhasil disubmit!");
-        this.form = {
-          nik: "",
-          nama: "",
-          alamat: "",
-          noHp: "",
-          ktp: null,
-          kk: null,
-          dokumenPenunjang: null,
-          keperluan: "",
-        };
+        alert("Data berhasil dikirim!");
+        this.resetForm();
       } catch (error) {
-        console.error("Gagal mengirim data:", error);
+        console.error("Error:", error);
         alert(
-          `Gagal mengirim data: ${
-            error.response ? error.response.data.message : error.message
-          }`
+          "Gagal mengirim data: " +
+            (error.response?.data?.message || error.message)
         );
       }
+    },
+    resetForm() {
+      this.form = {
+        nik: "",
+        nama: "",
+        alamat: "",
+        noHp: "",
+        ktp: null,
+        kk: null,
+        lampiran: null,
+        keperluan: "",
+      };
+      // Optional: reset input file field (manual clear)
+      document.getElementById("ktp").value = "";
+      document.getElementById("kk").value = "";
+      document.getElementById("lampiran").value = "";
     },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .card {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
