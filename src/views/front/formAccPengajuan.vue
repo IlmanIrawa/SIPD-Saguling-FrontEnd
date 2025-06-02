@@ -136,7 +136,9 @@ export default {
       try {
         await axios.patch(
           `http://localhost:3000/api/pengajuan/${formItem.value.pengajuanid}`,
-          { statusPengajuan: formItem.value.statusPengajuan },
+          { statusPengajuan: formItem.value.statusPengajuan,
+            catatan : formItem.value.catatan
+           },
           { headers: { Authorization: `Bearer ${authStore.token}` } }
         );
         emit("updateStatus", formItem.value);
@@ -147,7 +149,7 @@ export default {
         });
         closeModal();
       } catch (error) {
-        console.error("Gagal memperbarui status pengajuan:", error);
+        console.error("Gagal memperbarui status pengajuan silahkan coba lagi !");
         Swal.fire({
           icon: "error",
           title: "Gagal",

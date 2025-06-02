@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../components/auth/Login.vue";
 import Register from "../components/auth/Register.vue";
-import dashboardPH from "../views/dashboardPH.vue";
+import dashboardUser from "../views/user/dashboardUser.vue";
 import AdminView from "../views/admin/AdminView.vue";
 import UserView from "../views/user/UserView.vue";
 import profileView from "../views/profileDesa/profileView.vue";
@@ -89,7 +89,7 @@ const routes = [
     component: UserView,
     meta: { requiresAuth: true, layout: "dashboard", role: "USER" },
     children: [
-      { path: "", component: dashboardPH },
+      { path: "", component: dashboardUser },
       { path: "profile", component: () => import("../views/user/profileUser.vue") },
       { path: "pengajuan-user", component: () => import("../views/user/pengajuanUser.vue") },
       { path: "riwayat-pengajuan", component: () => import("../views/user/riwayatPengajuan.vue") },
