@@ -113,7 +113,7 @@ export default defineComponent({
     const saveChanges = async () => {
       try {
         const response = await axios.patch(
-          `http://localhost:3000/api/user/${this.value.userid}`,
+          `http://localhost:3000/api/user/${user.value.userid}`,
           editUser.value,
           {
             headers: { Authorization: `Bearer ${userStore.token}` },

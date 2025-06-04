@@ -3,8 +3,8 @@
   <header :class="{ scrolled: isScrolled }">
     <Header />
   </header>
-  <div class="container mt-7 pt-5">
-    <!-- Visi dan Misi -->
+  <div class="container mt-4 pt-5">
+    <!-- Visi dan Misi 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
       <div class="card p-5 shadow-lg bg-white rounded-xl">
         <h2 class="text-xl font-bold mb-3">Visi</h2>
@@ -31,7 +31,9 @@
         </ul>
       </div>
     </div>
+     -->
   </div>
+ 
   <!-- struktur organisasi -->
   <div class="struktur">
     <strukturOrganisasi/>

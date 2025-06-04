@@ -11,9 +11,14 @@
   </div>
 </div>
 
-
   <strong><h3>BERITA DESA SAGULING</h3></strong>
   <hr />
+<div class="search-bar" style="margin: 1rem 0; text-align: center;">
+  <input v-model="searchQuery" type="text" placeholder="Cari berita..." style="padding: 8px; width: 250px; border-radius: 5px; border: 1px solid #ccc;">
+  <button @click="searchNews" style="padding: 8px 12px; margin-left: 8px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer;">
+    Cari
+  </button>
+</div>
 
   <div class="content-wrapper">
     <div v-for="(card, index) in paginatedNews" :key="index" class="news-card">
@@ -187,11 +192,6 @@ const newsCards = [
 // Jumlah halaman total
 const totalPages = computed(() => Math.ceil(newsCards.length / itemsPerPage));
 
-// Data berita yang ditampilkan di halaman aktif
-const paginatedNews = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return newsCards.slice(start, start + itemsPerPage);
-});
 
 // Fungsi navigasi halaman
 const nextPage = () => {
@@ -200,6 +200,27 @@ const nextPage = () => {
 const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--;
 };
+
+const searchQuery = ref("");
+
+const filteredNews = computed(() => {
+  if (!searchQuery.value) return newsCards;
+  return newsCards.filter((card) =>
+    card.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    card.excerpt.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+const paginatedNews = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredNews.value.slice(start, end);
+});
+
+function searchNews() {
+  currentPage.value = 1; // Reset ke halaman pertama saat pencarian
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -440,4 +461,9 @@ h3 {
     font-size: 0.9rem;
   }
 }
+.search-bar input:focus {
+  outline: none;
+  border-color: #0056b3;
+}
+
 </style>

@@ -7,27 +7,22 @@
       <div class="contact-info">
         <div class="contact-item">
           <i class="fab fa-whatsapp contact-icon" style="color: #25D366;"></i>
-          <a href="https://wa.me/yourphonenumber" class="contact-link">WhatsApp</a>
+          <a href="https://wa.me/085793988186" class="contact-link">WhatsApp</a>
         </div>
 
         <div class="contact-item">
           <i class="fab fa-facebook-f contact-icon" style="color: #1877F2;"></i>
-          <a href="https://facebook.com/yourprofile" class="contact-link">Facebook</a>
+          <a href="https://facebook.com/Desa.Saguling" class="contact-link">Facebook</a>
         </div>
 
         <div class="contact-item">
           <i class="fab fa-instagram contact-icon" style="color: #E1306C;"></i>
-          <a href="https://instagram.com/yourprofile" class="contact-link">Instagram</a>
-        </div>
-
-        <div class="contact-item">
-          <i class="fab fa-twitter contact-icon" style="color: #1DA1F2;"></i>
-          <a href="https://twitter.com/yourprofile" class="contact-link">Twitter</a>
+          <a href="https://www.instagram.com/desa_saguling?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" class="contact-link">Instagram</a>
         </div>
 
         <div class="contact-item">
           <i class="fas fa-envelope contact-icon" style="color: #D44638;"></i>
-          <a href="mailto:your@email.com" class="contact-link">Email</a>
+          <a href="mailto:DesaSaguling1@email.com" class="contact-link">Email</a>
         </div>
       </div>
     </div>

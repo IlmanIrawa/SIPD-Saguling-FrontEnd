@@ -37,8 +37,12 @@ onMounted(async () => {
     pengajuanNonSelesai.value = data.filter(
       (item) => item.statusPengajuan !== "SELESAI"
     ).length;
-    waitingList.value = data.filter((item) => item.statusPengajuan === "PENDING").length;
-    selesai.value = data.filter((item) => item.statusPengajuan === "SELESAI").length;
+    waitingList.value = data.filter(
+      (item) => item.statusPengajuan === "PENDING"
+    ).length;
+    selesai.value = data.filter(
+      (item) => item.statusPengajuan === "SELESAI"
+    ).length;
 
     // Line chart - Pengajuan per bulan
     const monthlyCount = Array(12).fill(0);
@@ -141,7 +145,7 @@ onMounted(async () => {
               :value="pengajuanNonSelesai"
               :description="`<span class='text-sm font-weight-bolder text-success'>Administrasi</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-send',
                 background: 'bg-gradient-primary',
                 shape: 'rounded-circle',
               }"
@@ -153,7 +157,7 @@ onMounted(async () => {
               :value="waitingList"
               :description="`<span class='text-sm font-weight-bolder text-success'>Menunggu</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-time-alarm',
                 background: 'bg-gradient-danger',
                 shape: 'rounded-circle',
               }"
@@ -165,7 +169,7 @@ onMounted(async () => {
               :value="selesai"
               :description="`<span class='text-sm font-weight-bolder text-success'>Lapor</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-check-bold',
                 background: 'bg-gradient-success',
                 shape: 'rounded-circle',
               }"
@@ -177,7 +181,7 @@ onMounted(async () => {
               :value="totalPengajuan"
               :description="`<span class='text-sm font-weight-bolder text-success'>Pengajuan</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-archive-2',
                 background: 'bg-gradient-warning',
                 shape: 'rounded-circle',
               }"

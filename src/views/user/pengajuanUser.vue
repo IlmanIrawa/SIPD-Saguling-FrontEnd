@@ -8,45 +8,21 @@
         <form @submit.prevent="submitPengajuan" enctype="multipart/form-data">
           <div class="mb-3">
             <label for="nik" class="form-label">NIK</label>
-            <input
-              type="number"
-              id="nik"
-              class="form-control"
-              v-model="form.nik"
-              required
-            />
+            <input type="number" id="nik" class="form-control" v-model="form.nik" required readonly />
           </div>
 
           <div class="mb-3"><label for="nama" class="form-label">Nama</label>
-            <input
-              type="text"
-              id="nama"
-              class="form-control"
-              v-model="form.nama"
-              required
-            />
+            <input type="text" id="nama" class="form-control" v-model="form.nama" required readonly />
           </div>
 
           <div class="mb-3">
             <label for="alamat" class="form-label">Alamat</label>
-            <input
-              type="text"
-              id="alamat"
-              class="form-control"
-              v-model="form.alamat"
-              required
-            />
+            <input type="text" id="alamat" class="form-control" v-model="form.alamat" required readonly />
           </div>
 
           <div class="mb-3">
             <label for="noHp" class="form-label">Handphone</label>
-            <input
-              type="tel"
-              id="noHp"
-              class="form-control"
-              v-model="form.noHp"
-              required
-            />
+            <input type="number" id="noHp" class="form-control" v-model="form.noHp" required  />
           </div>
 
           <div class="mb-3">
@@ -155,11 +131,41 @@ export default {
       ],
     };
   },
+  mounted() {
+    this.getUserData();
+  },
   methods: {
     handleFileUpload(event, field) {
       const file = event.target.files[0];
       if (file) {
         this.form[field] = file;
+      }
+    },
+    async getUserData() {
+      try {
+        const authStore = useAuthStore();
+        const token = authStore.token || localStorage.getItem("jwt_token");
+
+        if (!token) {
+          return;
+        }
+
+        const response = await axios.get("http://localhost:3000/api/user/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const user = response.data;
+
+        // Isi form otomatis dari data user
+        this.form.nik = user.nik || "";
+        this.form.nama = user.nama || "";
+        this.form.alamat = user.alamat || "";
+        this.form.noHp = user.noHp || "";
+      } catch (error) {
+        console.error("Gagal mengambil data user:", error);
+        // Kamu bisa tampilkan notifikasi error jika perlu
       }
     },
     async submitPengajuan() {
@@ -199,6 +205,7 @@ export default {
         });
 
         this.resetForm();
+        this.getUserData(); // Optional: refresh user info setelah submit
       } catch (error) {
         Swal.fire({
           icon: "error",
@@ -211,17 +218,10 @@ export default {
       }
     },
     resetForm() {
-      this.form = {
-        nik: "",
-        nama: "",
-        alamat: "",
-        noHp: "",
-        ktp: null,
-        kk: null,
-        lampiran: null,
-        keperluan: "",
-      };
-      // Reset file input fields
+      this.form.keperluan = "";
+      this.form.ktp = null;
+      this.form.kk = null;
+      this.form.lampiran = null;
       document.getElementById("ktp").value = "";
       document.getElementById("kk").value = "";
       document.getElementById("lampiran").value = "";

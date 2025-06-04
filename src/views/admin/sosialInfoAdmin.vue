@@ -39,7 +39,6 @@ async function fetchUsers() {
     users.value = response.data;
   } catch (error) {
     console.error("Error fetching users:", error);
-    Swal.fire("Gagal", "Gagal mengambil data dari server", "error");
   } finally {
     isLoading.value = false;
   }
@@ -66,7 +65,6 @@ async function handleSubmit(user) {
     await fetchUsers();
   } catch (error) {
     console.error("Gagal menyimpan data:", error);
-    Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan data.", "error");
   } finally {
     isLoading.value = false;
     isSubmitting.value = false;
@@ -276,7 +274,6 @@ onMounted(fetchUsers);
 
     <ModalApp v-model:visible="showForm">
       <formSosial
-        :user="selectedItem"
         :item="selectedItem"
         :isEdit="isEdit"
         @submit="handleSubmit($event)"

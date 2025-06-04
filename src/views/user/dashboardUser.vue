@@ -37,8 +37,12 @@ onMounted(async () => {
     pengajuanNonSelesai.value = data.filter(
       (item) => item.statusPengajuan !== "SELESAI"
     ).length;
-    waitingList.value = data.filter((item) => item.statusPengajuan === "PENDING").length;
-    selesai.value = data.filter((item) => item.statusPengajuan === "SELESAI").length;
+    waitingList.value = data.filter(
+      (item) => item.statusPengajuan === "PENDING"
+    ).length;
+    selesai.value = data.filter(
+      (item) => item.statusPengajuan === "SELESAI"
+    ).length;
 
     // Line chart - Pengajuan per bulan
     const monthlyCount = Array(12).fill(0);
@@ -141,7 +145,7 @@ onMounted(async () => {
               :value="pengajuanNonSelesai"
               :description="`<span class='text-sm font-weight-bolder text-success'>Administrasi</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-send',
                 background: 'bg-gradient-primary',
                 shape: 'rounded-circle',
               }"
@@ -151,9 +155,9 @@ onMounted(async () => {
             <mini-statistics-card
               title="Waiting List"
               :value="waitingList"
-              :description="`<span class='text-sm font-weight-bolder text-success'>Menunggu</span>`"
+              :description="`<span class='text-sm font-weight-bolder text-warning'>Menunggu</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-time-alarm',
                 background: 'bg-gradient-danger',
                 shape: 'rounded-circle',
               }"
@@ -163,9 +167,9 @@ onMounted(async () => {
             <mini-statistics-card
               title="Selesai"
               :value="selesai"
-              :description="`<span class='text-sm font-weight-bolder text-success'>Lapor</span>`"
+              :description="`<span class='text-sm font-weight-bolder text-success'>Selesai</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-check-bold',
                 background: 'bg-gradient-success',
                 shape: 'rounded-circle',
               }"
@@ -175,9 +179,9 @@ onMounted(async () => {
             <mini-statistics-card
               title="Total Pengajuan"
               :value="totalPengajuan"
-              :description="`<span class='text-sm font-weight-bolder text-success'>Pengajuan</span>`"
+              :description="`<span class='text-sm font-weight-bolder text-info'>Pengajuan</span>`"
               :icon="{
-                component: 'ni ni',
+                component: 'ni ni-collection',
                 background: 'bg-gradient-warning',
                 shape: 'rounded-circle',
               }"
