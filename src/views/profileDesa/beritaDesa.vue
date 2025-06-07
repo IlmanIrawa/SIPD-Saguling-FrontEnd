@@ -1,35 +1,67 @@
 <template>
-  <header :class="{ 'scrolled': isScrolled }">
+  <header :class="{ scrolled: isScrolled }">
     <Header />
   </header>
 
   <div class="news-ticker">
-  <div class="ticker-content">
-    ⚠️ Peringatan: Akan ada pemadaman listrik di Dusun Cikaroya pada tanggal 15 April 2025.
-    | 📢 Posyandu Balita akan dilaksanakan hari Minggu pukul 08.00 WIB di Balai RW 07.
-    | 🎉 Selamat Hari Jadi Desa Saguling ke-79!
+    <div class="ticker-content">
+      ⚠️ Peringatan: Akan ada pemadaman listrik di Dusun Cikaroya pada tanggal
+      15 April 2025. | 📢 Posyandu Balita akan dilaksanakan hari Minggu pukul
+      08.00 WIB di Balai RW 07. | 🎉 Selamat Hari Jadi Desa Saguling ke-79!
+    </div>
   </div>
-</div>
 
   <strong><h3>BERITA DESA SAGULING</h3></strong>
   <hr />
-<div class="search-bar" style="margin: 1rem 0; text-align: center;">
-  <input v-model="searchQuery" type="text" placeholder="Cari berita..." style="padding: 8px; width: 250px; border-radius: 5px; border: 1px solid #ccc;">
-  <button @click="searchNews" style="padding: 8px 12px; margin-left: 8px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer;">
-    Cari
-  </button>
-</div>
 
-  <div class="content-wrapper">
+  <div class="search-bar" v-if="!selectedNews" style="margin: 1rem 0; text-align: center">
+    <input
+      v-model="searchQuery"
+      type="text"
+      placeholder="Cari berita..."
+      style="padding: 8px; width: 250px; border-radius: 5px; border: 1px solid #ccc;"
+    />
+    <button
+      @click="searchNews"
+      style="padding: 8px 12px; margin-left: 8px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer;"
+    >
+      Cari
+    </button>
+  </div>
+
+  <!-- DETAIL BERITA -->
+  <div v-if="selectedNews" class="content-wrapper" style="flex-direction: column; align-items: center;">
+    <img
+      :src="selectedNews.image.startsWith('http') ? selectedNews.image : `http://localhost:3000/uploads/${selectedNews.image}`"
+      :alt="selectedNews.title"
+      style="max-width: 100%; height: auto; border-radius: 8px;"
+    />
+    <h2 style="margin-top: 1rem;" v-html="selectedNews.title"></h2>
+    <p style="color: #999;">{{ selectedNews.date }}</p>
+    <div style="margin-top: 1rem; max-width: 800px;" v-html="selectedNews.fullContent"></div>
+
+    <button
+      @click="selectedNews = null"
+      style="margin-top: 1.5rem; padding: 8px 16px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer;"
+    >
+      ← Kembali ke Daftar Berita
+    </button>
+  </div>
+
+  <!-- DAFTAR BERITA -->
+  <div class="content-wrapper" v-else>
     <div v-for="(card, index) in paginatedNews" :key="index" class="news-card">
-      <a :href="card.link" class="news-card__card-link"></a>
-      <img :src="card.image" :alt="card.title" class="news-card__image" />
+      <img
+        :src="card.image.startsWith('http') ? card.image : `http://localhost:3000/uploads/${card.image}`"
+        :alt="card.title"
+        class="news-card__image"
+      />
       <div class="news-card__text-wrapper">
         <h2 class="news-card__title" v-html="card.title"></h2>
         <div class="news-card__post-date">{{ card.date }}</div>
         <div class="news-card__details-wrapper">
           <p class="news-card__excerpt" v-html="card.excerpt"></p>
-          <a :href="card.link" class="news-card__read-more">
+          <a href="javascript:void(0);" class="news-card__read-more" @click="showDetail(card.id)">
             Read more <i class="fas fa-long-arrow-alt-right"></i>
           </a>
         </div>
@@ -37,7 +69,7 @@
     </div>
   </div>
 
-  <div class="pagination">
+  <div class="pagination" v-if="!selectedNews">
     <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
     <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
     <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
@@ -46,9 +78,8 @@
   <Footer />
 </template>
 
-
 <script setup>
-import { ref, computed} from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useUIStore } from "@/store/uiStore";
 import Header from "@/examples/PageLayout/header.vue";
 import Footer from "@/examples/PageLayout/Footer.vue";
@@ -57,172 +88,71 @@ const uiStore = useUIStore();
 uiStore.layout = "homeDesa";
 
 const isScrolled = ref(false);
-const itemsPerPage = 18;
-const currentPage = ref(1); 
+const currentPage = ref(1);
+const itemsPerPage = 6;
+const searchQuery = ref("");
+const beritaData = ref([]);
+const selectedNews = ref(null); // <-- untuk menampilkan berita detail inline
 
-const newsCards = [
-  {
-    title: "Amazing First Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/127513/pexels-photo-127513.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia iure architecto deserunt distinctio, pariatur…",
-    link: "#"
-  },
-  {
-    title: "Amazing Second Title that is Quite Long",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/631954/pexels-photo-631954.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ullam obcaecati ex natus nulla rem sequi laborum quod fugit…",
-    link: "#"
-  },
-  {
-    title: "Amazing Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis beatae…",
-    link: "#"
-  },
-  {
-    title: "Amazing Forth Title that is Quite Long",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/248486/pexels-photo-248486.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet!",
-    link: "#"
-  },
-  {
-    title: "Amazing Fifth Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/206660/pexels-photo-206660.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia iure architecto deserunt distinctio…",
-    link: "#"
-  },
-  {
-    title: "Amazing 6<sup>th</sup> Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/210243/pexels-photo-210243.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia.",
-    link: "#"
-  },
-   {
-    title: "Amazing First Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/127513/pexels-photo-127513.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia iure architecto deserunt distinctio, pariatur…",
-    link: "#"
-  },
-  {
-    title: "Amazing Second Title that is Quite Long",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/631954/pexels-photo-631954.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ullam obcaecati ex natus nulla rem sequi laborum quod fugit…",
-    link: "#"
-  },
-  {
-    title: "Amazing Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis beatae…",
-    link: "#"
-  },
-  {
-    title: "Amazing Forth Title that is Quite Long",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/248486/pexels-photo-248486.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet!",
-    link: "#"
-  },
-  {
-    title: "Amazing Fifth Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/206660/pexels-photo-206660.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia iure architecto deserunt distinctio…",
-    link: "#"
-  },
-  {
-    title: "Amazing 6<sup>th</sup> Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/210243/pexels-photo-210243.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia.",
-    link: "#"
-  },
-  {
-    title: "Amazing First Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/127513/pexels-photo-127513.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia iure architecto deserunt distinctio, pariatur…",
-    link: "#"
-  },
-  {
-    title: "Amazing Second Title that is Quite Long",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/631954/pexels-photo-631954.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ullam obcaecati ex natus nulla rem sequi laborum quod fugit…",
-    link: "#"
-  },
-  {
-    title: "Amazing Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/247599/pexels-photo-247599.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis beatae…",
-    link: "#"
-  },
-  {
-    title: "Amazing Forth Title that is Quite Long",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/248486/pexels-photo-248486.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet!",
-    link: "#"
-  },
-  {
-    title: "Amazing Fifth Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/206660/pexels-photo-206660.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia iure architecto deserunt distinctio…",
-    link: "#"
-  },
-  {
-    title: "Amazing 6<sup>th</sup> Title",
-    date: "Jan 29, 2018",
-    image: "https://images.pexels.com/photos/210243/pexels-photo-210243.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260",
-    excerpt: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est pariatur nemo tempore repellat? Ullam sed officia.",
-    link: "#"
+// Fetch data
+const fetchBerita = async () => {
+  try {
+    const res = await fetch("http://localhost:3000/api/berita");
+    const data = await res.json();
+    beritaData.value = data.map((item) => ({
+      id: item.beritaid,
+      title: item.judul,
+      date: new Date(item.tanggal).toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      image: item.gambar,
+      excerpt: item.isiBerita.slice(0, 120) + "...",
+      fullContent: item.isiBerita,
+    }));
+  } catch (err) {
+    console.error("Gagal mengambil data berita:", err);
   }
-];
+};
 
-// Jumlah halaman total
-const totalPages = computed(() => Math.ceil(newsCards.length / itemsPerPage));
+onMounted(fetchBerita);
 
+const filteredNews = computed(() =>
+  beritaData.value.filter((item) =>
+    item.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+);
 
-// Fungsi navigasi halaman
+const totalPages = computed(() =>
+  Math.ceil(filteredNews.value.length / itemsPerPage)
+);
+
+const paginatedNews = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredNews.value.slice(start, start + itemsPerPage);
+});
+
 const nextPage = () => {
   if (currentPage.value < totalPages.value) currentPage.value++;
 };
+
 const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--;
 };
 
-const searchQuery = ref("");
+const searchNews = () => {
+  currentPage.value = 1;
+};
 
-const filteredNews = computed(() => {
-  if (!searchQuery.value) return newsCards;
-  return newsCards.filter((card) =>
-    card.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    card.excerpt.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
-
-const paginatedNews = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredNews.value.slice(start, end);
-});
-
-function searchNews() {
-  currentPage.value = 1; // Reset ke halaman pertama saat pencarian
-}
-
+// Fungsi untuk tampilkan detail berita
+const showDetail = (id) => {
+  const berita = beritaData.value.find((b) => b.id === id);
+  if (berita) {
+    selectedNews.value = berita;
+  }
+};
 </script>
-
 <style scoped lang="scss">
 /* Header */
 header {
@@ -293,10 +223,14 @@ body {
   }
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.7) 80%);
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.7) 80%
+    );
     z-index: 0;
   }
 
@@ -465,5 +399,4 @@ h3 {
   outline: none;
   border-color: #0056b3;
 }
-
 </style>

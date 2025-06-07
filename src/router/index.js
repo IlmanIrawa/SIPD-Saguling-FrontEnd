@@ -48,6 +48,7 @@ const routes = [
       { path: "/beritaDesa", component: () => import("../views/profileDesa/beritaDesa.vue") },
       { path: "/visiMisi", component: () => import("../views/profileDesa/visiMisi.vue") },
       { path: "/infografis", component: () => import("../views/profileDesa/infografisDesa.vue") },
+      { path: "/preview", component: () => import("../views/profileDesa/previewBerita.vue") }
     ],
   },
   // Define routes based on user role

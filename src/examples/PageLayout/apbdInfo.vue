@@ -21,25 +21,24 @@
         <!-- Kartu Pendapatan -->
         <div class="card shadow-sm mb-3">
           <div class="card-body d-flex justify-content-between align-items-center">
-            <span class="fw-semibold text-secondary">Pendapatan Desa</span>
-            <span class="fs-4 fw-bold text-dark">Rp0,00</span>
+            <span class="fw-semibold text-secondary .text-justify">APBD Desa (Anggaran Pendapatan dan Belanja Desa) adalah rencana keuangan tahunan desa yang memuat pendapatan, belanja, dan pembiayaan desa yang ditetapkan melalui musyawarah desa dan disahkan oleh kepala desa untuk mendukung penyelenggaraan pemerintahan, pembangunan, pembinaan kemasyarakatan, dan pemberdayaan masyarakat desa.</span>
           </div>
         </div>
 
         <!-- Kartu Belanja -->
         <div class="card shadow-sm">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <span class="fw-semibold text-secondary">Belanja Desa</span>
-            <span class="fs-4 fw-bold text-dark">Rp0,00</span>
+          <div class="card-body d-flex justify-content-between .text-justify">
+            <span class="fw-semibold text-secondary">Tujuan APBD Desa adalah untuk merencanakan dan mengatur keuangan desa secara transparan dan akuntabel guna mendukung pelaksanaan pemerintahan, pembangunan, dan pelayanan masyarakat desa.
+            Dasar hukum APBD Desa adalah Undang-Undang Nomor 6 Tahun 2014 tentang Desa, khususnya Pasal 72–74, serta diatur lebih lanjut dalam Peraturan Menteri Dalam Negeri Nomor 20 Tahun 2018 tentang Pengelolaan Keuangan Desa.</span>
           </div>
         </div>
 
         <!-- Tombol Lihat Selengkapnya -->
         <div class="mt-3">
-          <button class="btn btn-outline-dark btn-sm">
+          <a href="https://drive.google.com/file/d/1zd9zpqU39cnzE-iUDXzlpY8QHImN7x0q/view?usp=sharing"><button class="btn btn-outline-dark btn-sm">
             <i class="bi bi-file-earmark-text-fill me-1"></i>
             LIHAT DATA LEBIH LENGKAP
-          </button>
+          </button></a>
         </div>
       </div>
     </div>

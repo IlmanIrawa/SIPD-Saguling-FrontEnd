@@ -175,11 +175,14 @@ const login = async () => {
       return;
     }
 
-    const { token, role } = await loginService(nikInt, password.value);
+    const { token, role} = await loginService(nikInt, password.value);
 
     authStore.setToken(token);
     authStore.setRole(role);
+    authStore.setNik(nik.value); 
     localStorage.setItem("userRole", role);
+
+    console.log("NIK disimpan:", authStore.nik);
 
     await Swal.fire({
       icon: "success",

@@ -28,6 +28,12 @@
         <infografisDesa />
       </div>
     </div>
+
+    <div v-if="currentComponent === 'previewBerita'">
+      <div class="component-container">
+        <previewBerita />
+      </div>
+    </div>
       
     </ul>
   </div>
@@ -38,6 +44,7 @@ import cekBansos from "./cekBansos.vue";
 import beritaDesa from "./beritaDesa.vue"
 import visiMisi from "./visiMisi.vue"
 import infografisDesa from "./infografisDesa.vue"
+import previewBerita from "./previewBerita.vue"
 
 </script>
 
