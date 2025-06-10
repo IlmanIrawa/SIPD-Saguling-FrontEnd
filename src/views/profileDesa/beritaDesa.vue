@@ -34,11 +34,11 @@
     <img
       :src="selectedNews.image.startsWith('http') ? selectedNews.image : `http://localhost:3000/uploads/${selectedNews.image}`"
       :alt="selectedNews.title"
-      style="max-width: 100%; height: auto; border-radius: 8px;"
+      style="max-width: 50%; height: auto; border-radius: 8px;"
     />
     <h2 style="margin-top: 1rem;" v-html="selectedNews.title"></h2>
-    <p style="color: #999;">{{ selectedNews.date }}</p>
-    <div style="margin-top: 1rem; max-width: 800px;" v-html="selectedNews.fullContent"></div>
+    <p style="color: #999;" >{{ selectedNews.date }}</p>
+    <div style="margin-top: 1rem; max-width: 800px; text-align: justify; line-height: 1.7;" v-html="selectedNews.fullContent"></div>
 
     <button
       @click="selectedNews = null"
@@ -62,7 +62,7 @@
         <div class="news-card__details-wrapper">
           <p class="news-card__excerpt" v-html="card.excerpt"></p>
           <a href="javascript:void(0);" class="news-card__read-more" @click="showDetail(card.id)">
-            Read more <i class="fas fa-long-arrow-alt-right"></i>
+            Read more <i class="bi bi-book-fill"></i>
           </a>
         </div>
       </div>
@@ -262,6 +262,7 @@ body {
     font-size: 0.85rem;
     margin-bottom: 0.3rem;
     transition: color 1s ease;
+    color: rgb(218, 138, 46);
   }
 
   &__post-date {

@@ -104,15 +104,22 @@ export default {
         console.error("Token kosong! Tidak dapat melakukan permintaan API.");
         return;
       }
+
+      console.log("Token dari authStore:", authStore.token); // Tambahkan logging ini
+      console.log("NIK dari authStore:", authStore.nik); // Tambahkan logging ini
+
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/pengajuan",
+          "http://localhost:3000/api/pengajuan/by-nik",
           {
             headers: {
               Authorization: `Bearer ${authStore.token}`,
             },
           }
         );
+
+        console.log("Response dari API:", response); // Tambahkan logging ini
+        console.log("Data dari API:", response.data); // Tambahkan logging ini
 
         // Proses data pengajuan
         this.spk = response.data.map((item) => ({
@@ -128,8 +135,12 @@ export default {
           statusPengajuan: item.statusPengajuan,
           catatan: item.catatan
         }));
+
+        console.log("Data pengajuan setelah diproses:", this.spk); // Tambahkan logging ini
+
       } catch (error) {
         console.error("Error fetching Pengajuan:", error);
+        console.error("Detail error:", error.response); // Tambahkan logging ini
       }
     },
 
@@ -166,8 +177,8 @@ export default {
     },
 
     previewLampiran(fileUrl) {
-  window.open(fileUrl, "_blank");
-},
+      window.open(fileUrl, "_blank");
+    },
     closeForm() {
       // Menutup modal dan reset data
       this.showForm = false;
@@ -308,7 +319,7 @@ export default {
 }
 
 .badge-success {
-  background-color: #28a745;  /* Hijau */
+  background-color: #28a745; /* Hijau */
   color: white;
 }
 
@@ -326,6 +337,7 @@ export default {
   background-color: #6c757d; /* Abu-abu untuk status yang tidak dikenal */
   color: white;
 }
+
 .search-input {
   padding: 8px;
   border: 1px solid #ccc;

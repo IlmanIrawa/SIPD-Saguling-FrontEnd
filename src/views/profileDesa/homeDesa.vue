@@ -48,27 +48,27 @@
     </button>
   </div>
   <!-- sambutan kepala desa -->
-  <div class="sambutan">
+  <div class="sambutan" data-aos="fade-up">
     <sambutanKades/>
   </div>
   <!-- Potensi Desa -->
-  <div class="potensi">
+  <div class="potensi" data-aos="fade-up">
     <potensiDesa/>
   </div>
   <!-- statistik administrasi -->
-  <div class="statistik">
+  <div class="statistik" data-aos="fade-up">
     <statistikAdm/>
   </div>
    <!-- APBD  -->
-  <div class="apbd">
+  <div class="apbd" data-aos="fade-up">
     <apbdInfo/>
   </div>
   <!-- Galerry Desa -->
-  <div class="galerry">
+  <div class="galerry" data-aos="fade-up">
     <galeryDesa/>
   </div>
    <!-- Kontak  -->
-  <div class="kontak">
+  <div class="kontak" data-aos="fade-up">
     <kontakDesa/>
   </div>
   <Footer/>
@@ -86,7 +86,8 @@ import statistikAdm from "@/examples/PageLayout/statistikAdm.vue";
 import apbdInfo from "@/examples/PageLayout/apbdInfo.vue";
 import kontakDesa from "@/examples/PageLayout/kontakDesa.vue";
 import galeryDesa from "@/examples/PageLayout/galeryDesa.vue";
-
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const uiStore = useUIStore();
 uiStore.layout = "homeDesa";
@@ -99,6 +100,10 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
+  AOS.init({
+    duration: 1000, // durasi animasi dalam ms
+    //once: true, // animasi hanya berjalan sekali
+  });
 });
 
 onUnmounted(() => {
@@ -173,6 +178,22 @@ header.scrolled {
 h1, h2, p {
   color: white;
 }
+
+/* Media Queries untuk Responsif */
+@media (max-width: 768px) {
+  .carousel-caption h1 {
+    font-size: 2rem; /* Ukuran lebih kecil untuk mobile */
+  }
+
+  .carousel-caption h2 {
+    font-size: 1.5rem; /* Ukuran lebih kecil untuk mobile */
+  }
+
+  .nowrap-text {
+    font-size: 1.2rem; /* Ukuran lebih kecil untuk mobile */
+  }
+}
+
 .sambutan{
   background-color: white;
   margin-top: 170px;

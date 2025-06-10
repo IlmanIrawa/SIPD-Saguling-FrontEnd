@@ -64,7 +64,7 @@ export default {
         return;
       }
       try {
-        const response = await axios.get("http://localhost:3000/api/pengajuan", {
+        const response = await axios.get("http://localhost:3000/api/pengajuan/by-nik", {
           headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.spk = response.data;

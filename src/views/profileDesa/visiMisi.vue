@@ -39,15 +39,15 @@
     <strukturOrganisasi/>
   </div>
   <!-- profile desa -->
-  <div class="yt">
+  <div class="yt" data-aos="fade-up">
     <profile />
   </div>
   <!-- sejarah singkat desa -->
-  <div class="sejarah">
+  <div class="sejarah" data-aos="fade-up">
     <sejarahDesa />
   </div>
   <!-- peta lokasi -->
-  <div class="lokasi">
+  <div class="lokasi" data-aos="fade-up">
     <petaLokasi/>
   </div>
   <Footer />
@@ -62,6 +62,8 @@ import sejarahDesa from "@/examples/PageLayout/sejarahDesa.vue";
 import profile from "@/examples/PageLayout/profile.vue";
 import petaLokasi from "@/examples/PageLayout/petaLokasi.vue";
 import strukturOrganisasi from "@/examples/PageLayout/strukturOrganisasi.vue";
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const uiStore = useUIStore();
 uiStore.layout = "homeDesa";
@@ -74,6 +76,8 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
+  AOS.init({
+    duration: 1000,})
 });
 
 onBeforeUnmount(() => {

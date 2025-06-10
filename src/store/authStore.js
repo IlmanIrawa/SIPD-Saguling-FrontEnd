@@ -4,7 +4,18 @@ export const useAuthStore = defineStore("authStore", {
   state: () => ({
     token: localStorage.getItem("token") || "",
     role: localStorage.getItem("role") || "",
-    nik: localStorage.getItem("nik") || "", // Tambahkan state nik
+    nik: (() => {
+      try {
+        const storedNik = localStorage.getItem("nik");
+        console.log("NIK dari localStorage:", storedNik); // Tambahkan logging ini
+        const parsedNik = String(JSON.parse(storedNik) || ""); // Konversi ke string
+        console.log("NIK setelah JSON.parse:", parsedNik); // Tambahkan logging ini
+        return parsedNik;
+      } catch (error) {
+        console.error("Error parsing NIK from localStorage:", error);
+        return ""; // Nilai default jika terjadi kesalahan
+      }
+    })(),
   }),
 
   actions: {
@@ -19,10 +30,13 @@ export const useAuthStore = defineStore("authStore", {
     },
 
     setNik(nik) {
-      const plainNik = typeof nik === "object" && "_value" in nik ? nik.value : nik;
+      console.log("NIK sebelum penanganan _value:", nik); // Tambahkan logging ini
+      const plainNik = typeof nik === "object" && "_value" in nik ? String(nik.value) : String(nik); // Konversi ke string
+      console.log("NIK setelah penanganan _value:", plainNik); // Tambahkan logging ini
       this.nik = plainNik;
       localStorage.setItem("nik", JSON.stringify(plainNik));
-    },       
+      console.log("NIK disimpan di localStorage:", JSON.stringify(plainNik)); // Tambahkan logging ini
+    },      
 
     logout() {
       this.token = "";

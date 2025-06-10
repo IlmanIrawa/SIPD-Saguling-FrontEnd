@@ -27,7 +27,7 @@ const chartStatus = ref({
 onMounted(async () => {
   const authStore = useAuthStore();
   try {
-    const response = await axios.get("http://localhost:3000/api/pengajuan", {
+    const response = await axios.get("http://localhost:3000/api/pengajuan/by-nik", {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
 
